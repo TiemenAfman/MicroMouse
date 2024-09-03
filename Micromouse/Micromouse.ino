@@ -4,21 +4,25 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <PubSubClient.h>
+#include <DNSServer.h>
 #include "sendMessage.h"  
 #include "sensor.h"
 #include "Stepper.h"
+#include "motors.h"
 
 // Replace with your network credentials
-const char* ssid = "Ziggo6FF6DC6";
-const char* password = "ncV4dNppuvfj";
+const char* ssid = "ESP8266_AP";
+const char* password = "12345678";
+
+// Instantiate Web server on port 80
+ESP8266WebServer server(80);
+
+String debugInfo = "Debugging Information:\n";
 
 // Replace with your MQTT Broker's IP address or hostname
 const char* mqtt_server = "192.168.178.80";
 const int mqtt_port = 1883;
 
-// pins
-const int stepPin = D2; // Step pin verbonden met D2
-const int dirPin = D3;  // Dir pin verbonden met D3
 // Pin-definities multiplexing
 const int S0 = D5;
 const int S1 = D6;
@@ -231,40 +235,60 @@ void setup() {
   digitalWrite(S0, LOW);
   digitalWrite(S1, LOW);
   digitalWrite(S2, LOW);
-// test
 
   // WiFi and OTA
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    //log("."); // Uncomment if you have a log function
-  }
+    // Set up the Access Point
+  WiFi.softAP(ssid, password);
+  Serial.println("Access Point started");
 
-  ArduinoOTA.setHostname("esp_micromouse");
-
+  // Start OTA service
   ArduinoOTA.onStart([]() {
-    //log("Start"); // Uncomment if you have a log function
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_SPIFFS
+      type = "filesystem";
+    }
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("Start updating " + type);
   });
   ArduinoOTA.onEnd([]() {
-    //log("\nEnd"); // Uncomment if you have a log function
+    Serial.println("\nEnd");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    //log("Progress: %u%%\r" + (progress / (total / 100))); // Uncomment if you have a log function
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    }
   });
   ArduinoOTA.begin();
-  Serial.println("Connected to WiFi");
-  Serial.print(WiFi.localIP());
+  Serial.println("OTA Ready");
+
+  // Start Web Server
+  server.on("/", handleRoot);
+  server.begin();
+  Serial.println("HTTP server started");
 
   mqttClient.setServer(mqtt_server, mqtt_port);
   mqttClient.setCallback(callback);
+}
+
+void handleRoot() {
+  String html = "<html><body><pre>";
+  html += debugInfo;
+  html += "</pre></body></html>";
+  server.send(200, "text/html", html);
 }
 
 void loop() {
@@ -272,8 +296,12 @@ void loop() {
   //   reconnect();
   // }
   //mqttClient.loop();
-
+  
+  // Handle OTA events
   ArduinoOTA.handle();
+
+  // Handle Web server events
+  server.handleClient();
 
   // Check and send messages for the first sensor
   //checkAndSendMessage(mqttClient, sensorPin, "MicroMouse/SensorFront", lastValue);
@@ -282,6 +310,8 @@ void loop() {
   //publishValue(mqttClient, "MicroMouse/IsWallFront", String(isWall));
   float distance = wallDistance();  // Meet de 
   Serial.println(distance);
+  debugInfo = "Sensor Value: " + String(distance, 2) + "\n";
+  //debugInfo += "Sensor Value: " + String(distance, 2) + "\n";
 
   if (false){
     if (isWall) {
@@ -297,18 +327,18 @@ void loop() {
       int speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
       
       // Limiteer de snelheid om te voorkomen dat deze te snel of te langzaam wordt
-      speed = constrain(speed, 100, 1000);
+      //speed = constrain(speed, 100, 1000);
 
-      // Stappenmotor aansturen
-      digitalWrite(stepPin, HIGH);
-      delayMicroseconds(speed); // Pas de snelheid aan
-      digitalWrite(stepPin, LOW);
-      delayMicroseconds(speed); // Pas de snelheid aan
+      // // Stappenmotor aansturen
+      // digitalWrite(stepPin, HIGH);
+      // delayMicroseconds(speed); // Pas de snelheid aan
+      // digitalWrite(stepPin, LOW);
+      // delayMicroseconds(speed); // Pas de snelheid aan
 
     }
   }
 
-  delay(100);
+  delay(1000);
 
   // if ( !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
   //     log("Running...");
