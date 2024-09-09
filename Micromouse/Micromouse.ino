@@ -23,12 +23,6 @@ String debugInfo = "Debugging Information:\n";
 const char* mqtt_server = "192.168.178.80";
 const int mqtt_port = 1883;
 
-// Pin-definities multiplexing
-const int S0 = D5;
-const int S1 = D6;
-const int S2 = D7;
-
-
 //Password OTA = Admin
 
 String message = "Log Started";
@@ -222,10 +216,10 @@ void setup() {
   //Sensor
   pinMode(sensorPin, INPUT); // Stel de sensor pin in als invoer
     // Stel voor stepper 1
-  pinMode(stepPin, OUTPUT);
-  pinMode(dirPin, OUTPUT);
+  pinMode(motorL_step_pin, OUTPUT);
+  pinMode(motorL_dir_pin, OUTPUT);
   // Stel beginrichting in (bijvoorbeeld vooruit)
-  digitalWrite(dirPin, LOW);  
+  digitalWrite(motorL_dir_pin, LOW);  
   // Stel pinmodi in voor multiplexer
   pinMode(S0, OUTPUT);
   pinMode(S1, OUTPUT);
@@ -235,6 +229,8 @@ void setup() {
   digitalWrite(S0, LOW);
   digitalWrite(S1, LOW);
   digitalWrite(S2, LOW);
+
+  // last_time = millis();  // initiele starttijd voor motoren
 
   // WiFi and OTA
     // Set up the Access Point
@@ -308,7 +304,7 @@ void loop() {
 
   bool isWall = wallFront_();  // Roep de functie aan om te controleren of er een muur voor de sensor is
   //publishValue(mqttClient, "MicroMouse/IsWallFront", String(isWall));
-  float distance = wallDistance();  // Meet de 
+  float distance = wallDistance(1);  // Meet de 
   Serial.println(distance);
   debugInfo = "Sensor Value: " + String(distance, 2) + "\n";
   //debugInfo += "Sensor Value: " + String(distance, 2) + "\n";
@@ -324,8 +320,8 @@ void loop() {
       // Bereken de snelheid van de stappenmotor op basis van de afstand
       // Hoe dichter bij de muur, hoe langzamer de motor draait
       // Pas deze formule aan naar wens
-      int speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
-      
+      speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
+      moveForward_();
       // Limiteer de snelheid om te voorkomen dat deze te snel of te langzaam wordt
       //speed = constrain(speed, 100, 1000);
 
