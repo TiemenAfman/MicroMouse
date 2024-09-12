@@ -214,6 +214,8 @@ void setup() {
   // hardware
   //Sensor
   pinMode(sensorPinF, INPUT); // Stel de sensor pin in als invoer
+  pinMode(sensorPinL, INPUT); // Stel de sensor pin in als invoer
+  pinMode(sensorPinR, INPUT); // Stel de sensor pin in als invoer
     // Stel voor stepper 1
   pinMode(motorL_step_pin, OUTPUT);
   pinMode(motorL_dir_pin, OUTPUT);
@@ -292,9 +294,9 @@ void loop() {
 
   bool isWall = wallFront_();  // Roep de functie aan om te controleren of er een muur voor de sensor is
   //publishValue(mqttClient, "MicroMouse/IsWallFront", String(isWall));
-  float distance = wallDistance(1);  // Meet de 
+  float distance = wallDistance(A0);  // Meet de 
   Serial.println(distance);
-  debugInfo = "Sensor Value: " + String(distance, 2) + "\n";
+  debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
   //debugInfo += "Sensor Value: " + String(distance, 2) + "\n";
 
   if (false){

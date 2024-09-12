@@ -9,7 +9,7 @@ int lastValue = -1;  // Initialize with a value that your sensor will not output
 
 bool wallFront_() {
   int sensorValue = analogRead(sensorPinF);  // Lees de waarde van de sensor
-  float voltage = sensorValue * (5.0 / 1023.0);  // Converteer de analoge waarde naar spanning
+  float voltage = sensorValue * (3.3 / 4095.0);  // Converteer de analoge waarde naar spanning
   
   // Omzetten van spanning naar afstand (zie datasheet voor de juiste formule)
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
@@ -23,7 +23,7 @@ bool wallFront_() {
 
 bool wallLeft_() {
   int sensorValue = analogRead(sensorPinL);  // Lees de waarde van de sensor
-  float voltage = sensorValue * (5.0 / 1023.0);  // Converteer de analoge waarde naar spanning
+  float voltage = sensorValue * (3.3 / 2095.0);  // Converteer de analoge waarde naar spanning
   
   // Omzetten van spanning naar afstand (zie datasheet voor de juiste formule)
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
@@ -37,7 +37,7 @@ bool wallLeft_() {
 
 bool wallRight_() {
   int sensorValue = analogRead(sensorPinR);  // Lees de waarde van de sensor
-  float voltage = sensorValue * (5.0 / 1023.0);  // Converteer de analoge waarde naar spanning
+  float voltage = sensorValue * (3.3 / 4095.0);  // Converteer de analoge waarde naar spanning
   
   // Omzetten van spanning naar afstand (zie datasheet voor de juiste formule)
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
@@ -55,7 +55,7 @@ float wallDistance(int AnalogPin){
   int sensorValue = analogRead(AnalogPin);
   
   // Converteer de analoge waarde naar spanning
-  float voltage = sensorValue * (5.0 / 1023.0);
+  float voltage = sensorValue * (3.3 / 4095.0);
   
   // Omzetten van spanning naar afstand (gebruik de juiste formule voor je specifieke sensor)
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, aanpasbaar afhankelijk van de datasheet
