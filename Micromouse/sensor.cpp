@@ -1,23 +1,14 @@
 #include "sensor.h"
 
 // Define global variables
-const int sensorPin = A0;  // Analoge pin waar de sensor op is aangesloten// Pin-definities multiplexing
-const int S0 = D5;
-const int S1 = D6;
-const int S2 = D7;
+const int sensorPinF = A0;  // Analoge pin waar de sensor op is aangesloten
+const int sensorPinL = A1;  // Analoge pin waar de sensor op is aangesloten
+const int sensorPinR = A2;  // Analoge pin waar de sensor op is aangesloten
 
 int lastValue = -1;  // Initialize with a value that your sensor will not output
 
 bool wallFront_() {
-  // Stel multiplexer in
-  digitalWrite(S0, LOW);
-  digitalWrite(S1, LOW);
-  digitalWrite(S2, LOW);
-  
-  // Wacht even om de multiplexer de tijd te geven om te schakelen
-  delay(5);  // Korte vertraging, aanpasbaar
-  
-  int sensorValue = analogRead(sensorPin);  // Lees de waarde van de sensor
+  int sensorValue = analogRead(sensorPinF);  // Lees de waarde van de sensor
   float voltage = sensorValue * (5.0 / 1023.0);  // Converteer de analoge waarde naar spanning
   
   // Omzetten van spanning naar afstand (zie datasheet voor de juiste formule)
@@ -31,15 +22,7 @@ bool wallFront_() {
 }
 
 bool wallLeft_() {
-  // Stel multiplexer in
-  digitalWrite(S0, HIGH);
-  digitalWrite(S1, LOW);
-  digitalWrite(S2, LOW);
-  
-  // Wacht even om de multiplexer de tijd te geven om te schakelen
-  delay(5);  // Korte vertraging, aanpasbaar
-  
-  int sensorValue = analogRead(sensorPin);  // Lees de waarde van de sensor
+  int sensorValue = analogRead(sensorPinL);  // Lees de waarde van de sensor
   float voltage = sensorValue * (5.0 / 1023.0);  // Converteer de analoge waarde naar spanning
   
   // Omzetten van spanning naar afstand (zie datasheet voor de juiste formule)
@@ -53,15 +36,7 @@ bool wallLeft_() {
 }
 
 bool wallRight_() {
-  // Stel multiplexer in
-  digitalWrite(S0, LOW);
-  digitalWrite(S1, HIGH);
-  digitalWrite(S2, LOW);
-  
-  // Wacht even om de multiplexer de tijd te geven om te schakelen
-  delay(5);  // Korte vertraging, aanpasbaar
-  
-  int sensorValue = analogRead(sensorPin);  // Lees de waarde van de sensor
+  int sensorValue = analogRead(sensorPinR);  // Lees de waarde van de sensor
   float voltage = sensorValue * (5.0 / 1023.0);  // Converteer de analoge waarde naar spanning
   
   // Omzetten van spanning naar afstand (zie datasheet voor de juiste formule)
@@ -74,17 +49,10 @@ bool wallRight_() {
   return (distance < thresholdDistance);
 }
 
-float wallDistance(int channel){
-  // Stel de selectiepins in op het gewenste kanaal
-  digitalWrite(S0, bitRead(channel, 0));  // Zet het minst significante bit (LSB)
-  digitalWrite(S1, bitRead(channel, 1));  // Zet het middelste bit
-  digitalWrite(S2, bitRead(channel, 2));  // Zet het meest significante bit (MSB)
-  
-  // Wacht even om de multiplexer de tijd te geven om te schakelen
-  delay(5);  // Korte vertraging, aanpasbaar
+float wallDistance(int AnalogPin){
   
   // Lees de waarde van de geselecteerde sensor
-  int sensorValue = analogRead(sensorPin);
+  int sensorValue = analogRead(AnalogPin);
   
   // Converteer de analoge waarde naar spanning
   float voltage = sensorValue * (5.0 / 1023.0);

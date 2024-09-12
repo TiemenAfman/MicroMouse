@@ -12,7 +12,7 @@ unsigned long current_time;
 unsigned long motor1_last_step_time = 0;
 unsigned long motor2_last_step_time = 0;
 
-long last_time = millis();
+unsigned long last_time = millis();
 
 int base_steps_per_second = 200;  // Basis aantal stappen per seconde voor beide motoren
 int motor1_steps_per_second = 0;
@@ -31,8 +31,8 @@ bool moveForward_(float distance_cm) {
   int motor1_steps_taken = 0;
   int motor2_steps_taken = 0;
 
-  float sensor_left = wallDistance(1);
-  float sensor_right = wallDistance(2);
+  float sensor_left = wallDistance(A1);
+  float sensor_right = wallDistance(A2);
 
   // PID-berekeningen
   calculatePID(sensor_left, sensor_right);

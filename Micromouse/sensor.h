@@ -5,10 +5,9 @@
 #include <PubSubClient.h>  // Ensure to include PubSubClient for MQTT
 #include "sendMessage.h"  
 
-extern const int sensorPin;  // Analoge pin waar de sensor op is aangesloten// Pin-definities multiplexing
-extern const int S0;
-extern const int S1;
-extern const int S2;
+extern const int sensorPinF;  // Analoge pin waar de sensor op is aangesloten
+extern const int sensorPinL;  // Analoge pin waar de sensor op is aangesloten
+extern const int sensorPinR;  // Analoge pin waar de sensor op is aangesloten
 extern int lastValue;  // Initialize with a value that your sensor will not output
 
 bool wallFront_();

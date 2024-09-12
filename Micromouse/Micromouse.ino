@@ -1,6 +1,5 @@
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+#include <WiFi.h>
+#include <WebServer.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <PubSubClient.h>
@@ -11,11 +10,11 @@
 #include "motors.h"
 
 // Replace with your network credentials
-const char* ssid = "ESP8266_AP";
+const char* ssid = "MicroMouseTA_AP";
 const char* password = "12345678";
 
 // Instantiate Web server on port 80
-ESP8266WebServer server(80);
+WebServer server(80);
 
 String debugInfo = "Debugging Information:\n";
 
@@ -214,23 +213,12 @@ void setup() {
 
   // hardware
   //Sensor
-  pinMode(sensorPin, INPUT); // Stel de sensor pin in als invoer
+  pinMode(sensorPinF, INPUT); // Stel de sensor pin in als invoer
     // Stel voor stepper 1
   pinMode(motorL_step_pin, OUTPUT);
   pinMode(motorL_dir_pin, OUTPUT);
   // Stel beginrichting in (bijvoorbeeld vooruit)
   digitalWrite(motorL_dir_pin, LOW);  
-  // Stel pinmodi in voor multiplexer
-  pinMode(S0, OUTPUT);
-  pinMode(S1, OUTPUT);
-  pinMode(S2, OUTPUT);
-
-  // Stel multiplexer in
-  digitalWrite(S0, LOW);
-  digitalWrite(S1, LOW);
-  digitalWrite(S2, LOW);
-
-  // last_time = millis();  // initiele starttijd voor motoren
 
   // WiFi and OTA
     // Set up the Access Point
@@ -320,7 +308,7 @@ void loop() {
       // Bereken de snelheid van de stappenmotor op basis van de afstand
       // Hoe dichter bij de muur, hoe langzamer de motor draait
       // Pas deze formule aan naar wens
-      speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
+      int speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
       moveForward_();
       // Limiteer de snelheid om te voorkomen dat deze te snel of te langzaam wordt
       //speed = constrain(speed, 100, 1000);
@@ -334,7 +322,7 @@ void loop() {
     }
   }
 
-  delay(1000);
+  //delay(1000);
 
   // if ( !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
   //     log("Running...");

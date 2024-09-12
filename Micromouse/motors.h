@@ -8,8 +8,7 @@ extern const int motorL_step_pin; // Step pin
 extern const int motorL_dir_pin;  // Dir pin
 extern const int motorR_step_pin; // Step pin
 extern const int motorR_dir_pin;  // Dir pin
-extern int speed;
-extern long last_time;
+extern unsigned long last_time;
 
 bool moveForward_();
 void calculatePID(float sensor_left, float sensor_right);
