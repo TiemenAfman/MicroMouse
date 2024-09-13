@@ -1,10 +1,12 @@
 #include "motors.h"
 
 // Define global variables
-const int motorL_step_pin = D2; // Step pin verbonden met D2
-const int motorL_dir_pin = D3;  // Dir pin verbonden met D3
-const int motorR_step_pin = D4; // Step pin verbonden met D2
-const int motorR_dir_pin = D5;  // Dir pin verbonden met D3
+const int motorL_step_pin = D7; // Step pin
+const int motorL_dir_pin = D8;  // Dir pin 
+const int motorR_step_pin = D9; // Step pin
+const int motorR_dir_pin = D10;  // Dir pin
+const int ENBL_PINL = D6; //disable steppers when high
+const int ENBL_PINR = D5; //disable steppers when high
 
 float kp = 1.0, ki = 0.0, kd = 0.0;
 float error, previous_error, integral, derivative, pid_output;

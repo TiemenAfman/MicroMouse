@@ -15,7 +15,7 @@ bool wallFront_() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 3.0; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 4.5; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
   return (distance < thresholdDistance);
@@ -29,10 +29,10 @@ bool wallLeft_() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 3.0; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 10.0; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
-  return (distance < thresholdDistance);
+  return (distance > thresholdDistance);
 }
 
 bool wallRight_() {
@@ -43,10 +43,10 @@ bool wallRight_() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 3.0; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 10.0; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
-  return (distance < thresholdDistance);
+  return (distance > thresholdDistance);
 }
 
 float wallDistance(int AnalogPin){
@@ -60,7 +60,7 @@ float wallDistance(int AnalogPin){
   // Omzetten van spanning naar afstand (gebruik de juiste formule voor je specifieke sensor)
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, aanpasbaar afhankelijk van de datasheet
   
-  return voltage;
+  return distance;
 }
 
 // Function to read sensor value, check for change, and publish if changed

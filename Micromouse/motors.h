@@ -8,6 +8,8 @@ extern const int motorL_step_pin; // Step pin
 extern const int motorL_dir_pin;  // Dir pin
 extern const int motorR_step_pin; // Step pin
 extern const int motorR_dir_pin;  // Dir pin
+extern const int ENBL_PINL; //disable steppers  when high
+extern const int ENBL_PINR; //disable steppers  when high
 extern unsigned long last_time;
 
 bool moveForward_();

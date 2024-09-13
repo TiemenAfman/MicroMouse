@@ -29,6 +29,10 @@ String message = "Log Started";
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);  // Create a PubSubClient object with the WiFiClient
 
+// 
+bool testButton = false;
+bool enblState = false;
+
 class FIFOBuffer {
   private:
     int capacity;
@@ -219,8 +223,17 @@ void setup() {
     // Stel voor stepper 1
   pinMode(motorL_step_pin, OUTPUT);
   pinMode(motorL_dir_pin, OUTPUT);
+    // Stel voor stepper 1
+  pinMode(motorR_step_pin, OUTPUT);
+  pinMode(motorR_dir_pin, OUTPUT);
   // Stel beginrichting in (bijvoorbeeld vooruit)
   digitalWrite(motorL_dir_pin, LOW);  
+  digitalWrite(motorR_dir_pin, HIGH);  
+  // enable steppers
+  pinMode(ENBL_PINL, OUTPUT);
+  digitalWrite(ENBL_PINL, LOW);  
+  pinMode(ENBL_PINR, OUTPUT);
+  digitalWrite(ENBL_PINR, LOW);  
 
   // WiFi and OTA
     // Set up the Access Point
@@ -263,6 +276,12 @@ void setup() {
 
   // Start Web Server
   server.on("/", handleRoot);
+
+  // Voeg de toggle-handlers toe
+  server.on("/toggle", handleToggle);
+  server.on("/enblToggle", handleEnblToggle); 
+
+  //start de server
   server.begin();
   Serial.println("HTTP server started");
 
@@ -271,11 +290,76 @@ void setup() {
 }
 
 void handleRoot() {
-  String html = "<html><body><pre>";
+  String html = "<html><body>";
+
+  // Voeg een toggle button toe
+  html += "<button id='toggleButton' onclick='toggle()'>Toggle</button>";
+
+  // Voeg een JavaScript-functie toe om de knop te laten werken
+  html += "<script>";
+  html += "function toggle() {";
+  html += "var xhr = new XMLHttpRequest();";
+  html += "xhr.open('GET', '/toggle', true);";
+  html += "xhr.send();";
+  html += "}";
+  html += "</script>";
+
+  // Voeg de toggle-knop toe (voor Enable)
+  html += "<button id='enblButton' onclick='toggleEnbl()' style='background-color: gray;'>Enable</button>";
+
+  // JavaScript voor de Enable-knop
+  html += "<script>";
+  html += "function toggleEnbl() {";
+  html += "var xhr = new XMLHttpRequest();";
+  html += "xhr.open('GET', '/enblToggle', true);";
+  html += "xhr.onload = function() {";
+  html += "var response = JSON.parse(xhr.responseText);";  // Ontvang de JSON-respons
+  html += "if (response.enblState) {";
+  html += "document.getElementById('enblButton').style.backgroundColor = 'green';";  // Zet de knop op groen als Enbl aan is
+  html += "} else {";
+  html += "document.getElementById('enblButton').style.backgroundColor = 'gray';";   // Zet de knop terug naar grijs als Enbl uit is
+  html += "}";
+  html += "};";
+  html += "xhr.send();";
+  html += "}";
+  html += "</script>";
+
+  // Debug info toevoegen zoals eerder
+  html += "<pre>";
   html += debugInfo;
   html += "</pre></body></html>";
+
   server.send(200, "text/html", html);
 }
+
+
+void handleToggle() {
+  // Toggelen van de boolean
+  testButton = !testButton;
+
+  server.send(200, "text/plain", response);
+}
+
+void handleEnblToggle() {
+  // Toggle de enable status
+  enblState = !enblState;
+  
+  // Zet de Enable-pin op hoog of laag
+  digitalWrite(ENBL_PINL, enblState ? LOW : HIGH);  // Laag betekent de driver is ingeschakeld, hoog betekent uitgeschakeld
+  digitalWrite(ENBL_PINR, enblState ? LOW : HIGH);  // Laag betekent de driver is ingeschakeld, hoog betekent uitgeschakeld
+
+  // Stuur de nieuwe status terug als JSON
+  String jsonResponse = "{\"enblState\":";
+  jsonResponse += enblState ? "true" : "false";
+  jsonResponse += "}";
+  
+  server.send(200, "application/json", jsonResponse);
+}
+
+
+
+
+
 
 void loop() {
   // if (!mqttClient.connected()) {
@@ -299,7 +383,7 @@ void loop() {
   debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
   //debugInfo += "Sensor Value: " + String(distance, 2) + "\n";
 
-  if (false){
+  if (testButton){
     if (isWall) {
       message = "Muur gedetecteerd!";
     } else {
@@ -311,15 +395,18 @@ void loop() {
       // Hoe dichter bij de muur, hoe langzamer de motor draait
       // Pas deze formule aan naar wens
       int speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
-      moveForward_();
+      debugInfo += "Speed Value: " + String(speed, 2) + "\n";
+      //moveForward_();
       // Limiteer de snelheid om te voorkomen dat deze te snel of te langzaam wordt
-      //speed = constrain(speed, 100, 1000);
+      speed = constrain(speed, 100, 1000);
 
-      // // Stappenmotor aansturen
-      // digitalWrite(stepPin, HIGH);
-      // delayMicroseconds(speed); // Pas de snelheid aan
-      // digitalWrite(stepPin, LOW);
-      // delayMicroseconds(speed); // Pas de snelheid aan
+      // Stappenmotor aansturen
+      digitalWrite(motorL_step_pin, HIGH);
+      digitalWrite(motorR_step_pin, HIGH);
+      delayMicroseconds(speed); // Pas de snelheid aan
+      digitalWrite(motorL_step_pin, LOW);
+      digitalWrite(motorR_step_pin, LOW);
+      delayMicroseconds(speed); // Pas de snelheid aan
 
     }
   }
