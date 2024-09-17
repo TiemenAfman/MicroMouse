@@ -231,9 +231,9 @@ void setup() {
   digitalWrite(motorR_dir_pin, HIGH);  
   // enable steppers
   pinMode(ENBL_PINL, OUTPUT);
-  digitalWrite(ENBL_PINL, LOW);  
+  digitalWrite(ENBL_PINL, HIGH);  
   pinMode(ENBL_PINR, OUTPUT);
-  digitalWrite(ENBL_PINR, LOW);  
+  digitalWrite(ENBL_PINR, HIGH);  
 
   // WiFi and OTA
     // Set up the Access Point
@@ -337,6 +337,9 @@ void handleToggle() {
   // Toggelen van de boolean
   testButton = !testButton;
 
+  // Stuur feedback naar de webpagina
+  String response = enblState ? "Enbl is AAN" : "Enbl is UIT";
+
   server.send(200, "text/plain", response);
 }
 
@@ -380,10 +383,10 @@ void loop() {
   //publishValue(mqttClient, "MicroMouse/IsWallFront", String(isWall));
   float distance = wallDistance(A0);  // Meet de 
   Serial.println(distance);
-  debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
+  //debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
   //debugInfo += "Sensor Value: " + String(distance, 2) + "\n";
 
-  if (testButton){
+  if (false){
     if (isWall) {
       message = "Muur gedetecteerd!";
     } else {
@@ -411,6 +414,12 @@ void loop() {
     }
   }
 
+if (testButton){
+  debugInfo += "Info: " + moveForward_(400.0) + "\n";
+  testButton = false;
+}
+
+debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
   //delay(1000);
 
   // if ( !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
