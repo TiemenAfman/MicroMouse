@@ -337,6 +337,9 @@ void handleToggle() {
   // Toggelen van de boolean
   testButton = !testButton;
 
+  // Stuur feedback naar de webpagina
+  String response = enblState ? "Enbl is AAN" : "Enbl is UIT";
+
   server.send(200, "text/plain", response);
 }
 
