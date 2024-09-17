@@ -8,14 +8,14 @@ const int motorR_dir_pin = D10;  // Dir pin
 const int ENBL_PINL = D6; //disable steppers when high
 const int ENBL_PINR = D5; //disable steppers when high
 
-float kp = 1.0, ki = 0.0, kd = 0.0;
+float kp = 2.0, ki = 0.0, kd = 0.0;
 float error, previous_error, integral, derivative, pid_output;
 unsigned long motor1_last_step_time = 0;
 unsigned long motor2_last_step_time = 0;
 
 unsigned long last_time = millis();
 
-int base_steps_per_second = 400;  // Basis aantal stappen per seconde voor beide motoren
+int base_steps_per_second = 50;  // Basis aantal stappen per seconde voor beide motoren
 int motor1_steps_per_second = 0;
 int motor2_steps_per_second = 0;
 
@@ -38,19 +38,22 @@ String moveForward_(float distance_cm) {
   float sensor_left = wallDistance(A1);
   float sensor_right = wallDistance(A2);
 
-  sensor_right = 6.35; // test
+  sensor_right = 75.0; // test
   // PID-berekeningen
   calculatePID(sensor_left, sensor_right);
 
-  //pid_output = 50; // test
+  // test
+  if (wallLeft_()){
+    pid_output = 20;
+  }
 
   // Bereken het aantal stappen per seconde voor beide motoren
   motor1_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor linkermotor
   motor2_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor rechtermotor
 
   // Zorg ervoor dat de stappen per seconde niet negatief zijn
-  motor1_steps_per_second = max(motor1_steps_per_second, 0);
-  motor2_steps_per_second = max(motor2_steps_per_second, 0);
+  motor1_steps_per_second = max(motor1_steps_per_second, 10);
+  motor2_steps_per_second = max(motor2_steps_per_second, 10);
 
   // Blijf motoren bewegen totdat beide het benodigde aantal stappen hebben genomen
   while (motor1_steps_taken < steps_needed || motor2_steps_taken < steps_needed) {
@@ -92,15 +95,13 @@ String moveForward_(float distance_cm) {
 void calculatePID(float sensor_left, float sensor_right) {
   error = sensor_left - sensor_right;
 
-  // PID-berekeningen
+  // PD-berekeningen
   float p_term = kp * error;
-  integral += error * (millis() - last_time) / 1000.0;  // dt in seconden
-  float i_term = ki * integral;
-  derivative = (error - previous_error) / ((millis() - last_time) / 1000.0);  // dt in seconden
+  float derivative = (error - previous_error) / ((millis() - last_time) / 1000.0);  // dt in seconden
   float d_term = kd * derivative;
 
-  // PID-output
-  pid_output = p_term + i_term + d_term;
+  // PD-output
+  pid_output = p_term + d_term;
 
   // Sla de huidige fout en tijd op voor de volgende iteratie
   previous_error = error;
@@ -140,7 +141,7 @@ String moveMotors(int motor1_steps_per_second, int motor2_steps_per_second) {
 void stepMotor(int stepPin) {
   noInterrupts();  // Zorgt ervoor dat er geen interrupts optreden tijdens de stap
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(100);
+  delayMicroseconds(1000);
   digitalWrite(stepPin, LOW);
   interrupts();  // Zet interrupts weer aan
 }
