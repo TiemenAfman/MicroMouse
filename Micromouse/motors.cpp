@@ -1,4 +1,5 @@
 #include "motors.h"
+#include <AccelStepper.h>
 
 // Define global variables
 const int motorL_step_pin = D7; // Step pin
@@ -8,22 +9,28 @@ const int motorR_dir_pin = D10;  // Dir pin
 const int ENBL_PINL = D6; //disable steppers when high
 const int ENBL_PINR = D5; //disable steppers when high
 
-float kp = 2.0, ki = 0.0, kd = 0.0;
+// Definieer het type stappenmotor (1 = DRIVER)
+AccelStepper stepperL(AccelStepper::DRIVER, motorL_step_pin, motorL_dir_pin); // pin 2 = pulssignaal, pin 3 = richtingssignaal
+AccelStepper stepperR(AccelStepper::DRIVER, motorR_step_pin, motorR_dir_pin); // pin 2 = pulssignaal, pin 3 = richtingssignaal
+
+float kp = 0.4, ki = 0.0, kd = 0.0;
 float error, previous_error, integral, derivative, pid_output;
 unsigned long motor1_last_step_time = 0;
 unsigned long motor2_last_step_time = 0;
 
 unsigned long last_time = millis();
 
-int base_steps_per_second = 50;  // Basis aantal stappen per seconde voor beide motoren
+int base_steps_per_second = 800;  // Basis aantal stappen per seconde voor beide motoren
 int motor1_steps_per_second = 0;
 int motor2_steps_per_second = 0;
 
 int lastError = 0;  // Variabele om de fout van de vorige cyclus op te slaan
 
-// Voeg een nieuwe parameter toe aan moveForward_ om de afstand te bepalen
-String moveForward_(float distance_cm) {
 
+
+String moveForward_(float distance_cm) {
+  stepperL.setCurrentPosition(0);
+  stepperR.setCurrentPosition(0);
   String info = "";
 
   int steps_per_revolution = 200;   // Stel het aantal stappen per omwenteling van de motor in
@@ -31,12 +38,13 @@ String moveForward_(float distance_cm) {
   
   // Bereken het aantal stappen dat nodig is om de gewenste afstand te overbruggen
   int steps_needed = (distance_cm / wheel_circumference) * steps_per_revolution;
-
-  int motor1_steps_taken = 0;
-  int motor2_steps_taken = 0;
+steps_needed = 3200;
+  // Zet het aantal stappen voor beide motoren
+  stepperL.moveTo(steps_needed);
+  stepperR.moveTo(steps_needed);
 
   // Blijf motoren bewegen totdat beide het benodigde aantal stappen hebben genomen
-  while (motor1_steps_taken < steps_needed || motor2_steps_taken < steps_needed) {
+  while (stepperL.distanceToGo() != 0 && stepperR.distanceToGo() != 0) {
     // Lees de sensoren in elke cyclus om de PID-aanpassing te updaten
     float sensor_left = wallDistance(A1);
     float sensor_right = wallDistance(A2);
@@ -44,33 +52,30 @@ String moveForward_(float distance_cm) {
     // PID-berekeningen herberekenen tijdens elke iteratie
     calculatePID(sensor_left, sensor_right);
 
+    pid_output = 0;
+
     // Bereken het aantal stappen per seconde voor beide motoren
-    motor1_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor linkermotor
-    motor2_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor rechtermotor
+    float motor1_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor linkermotor
+    float motor2_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor rechtermotor
 
     // Zorg ervoor dat de stappen per seconde niet negatief zijn
-    motor1_steps_per_second = max(motor1_steps_per_second, 10);
-    motor2_steps_per_second = max(motor2_steps_per_second, 10);
+    motor1_steps_per_second = constrain(motor1_steps_per_second, 10, base_steps_per_second + 50);
+    motor2_steps_per_second = constrain(motor2_steps_per_second, 10, base_steps_per_second + 50);
 
     // Update de motoren en kijk of ze verder kunnen stappen
-    info = moveMotors(motor1_steps_per_second, motor2_steps_per_second);
+    stepperL.setMaxSpeed(motor1_steps_per_second);  // Maximale snelheid in stappen per seconde
+    stepperL.setAcceleration(500);                   // Acceleratie in stappen per seconde^2
+    stepperR.setMaxSpeed(motor2_steps_per_second);  // Maximale snelheid in stappen per seconde
+    stepperR.setAcceleration(500);                   // Acceleratie in stappen per seconde^2
 
-    // Controleer of motoren daadwerkelijk stappen hebben gemaakt
-    unsigned long current_time = micros();
-    
-    if (current_time - motor1_last_step_time >= (1000000 / motor1_steps_per_second)) {
-      motor1_steps_taken++;
-      motor1_last_step_time = current_time;  // Update de laatste stap tijd
-    }
-
-    if (current_time - motor2_last_step_time >= (1000000 / motor2_steps_per_second)) {
-      motor2_steps_taken++;
-      motor2_last_step_time = current_time;  // Update de laatste stap tijd
-    }
+    // Laat de motoren stappen
+    stepperL.run();  // Motor bewegen
+    stepperR.run();  // Motor bewegen
   }
 
   return info;
 }
+
 
 
 
@@ -91,6 +96,7 @@ void calculatePID(float sensor_left, float sensor_right) {
 }
 
 String moveMotors(int motor1_steps_per_second, int motor2_steps_per_second) {
+  noInterrupts();  // Zorgt ervoor dat er geen interrupts optreden tijdens de stap
 
   unsigned long current_time = micros();  // Gebruik micros() voor nauwkeurige timing
 
@@ -118,12 +124,14 @@ String moveMotors(int motor1_steps_per_second, int motor2_steps_per_second) {
   info += "motor1_step_interval: " + String(motor1_step_interval) + " microseconds\n";
   info += "motor2_step_interval: " + String(motor2_step_interval) + " microseconds\n";
   return info;
+
+  interrupts();  // Zet interrupts weer aan
 }
 
 void stepMotor(int stepPin) {
   noInterrupts();  // Zorgt ervoor dat er geen interrupts optreden tijdens de stap
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(1000);
+  delayMicroseconds(350);
   digitalWrite(stepPin, LOW);
   interrupts();  // Zet interrupts weer aan
 }

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "sensor.h"
+#include <AccelStepper.h>
 
 extern const int motorL_step_pin; // Step pin
 extern const int motorL_dir_pin;  // Dir pin

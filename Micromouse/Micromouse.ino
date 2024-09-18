@@ -420,6 +420,7 @@ if (testButton){
 }
 
 debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
+debugInfo += "Sensor Wall F: " + String(wallFront_()) + " Sensor Wall L: " + String(wallLeft_()) + " Sensor Wall R: " + String(wallRight_()) + "\n";
   //delay(1000);
 
   // if ( !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
