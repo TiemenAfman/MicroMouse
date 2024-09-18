@@ -12,9 +12,9 @@ extern const int ENBL_PINL; //disable steppers  when high
 extern const int ENBL_PINR; //disable steppers  when high
 extern unsigned long last_time;
 
-bool moveForward_();
+String moveForward_(float distance_cm);
 void calculatePID(float sensor_left, float sensor_right);
-void moveMotors(int motor1_steps_per_second, int motor2_steps_per_second);
+String moveMotors(int motor1_steps_per_second, int motor2_steps_per_second);
 void stepMotor(int stepPin);
 
 #endif
