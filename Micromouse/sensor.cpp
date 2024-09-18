@@ -1,4 +1,5 @@
 #include "sensor.h"
+#include <Arduino.h>  // Nodig om Arduino functies zoals analogRead te gebruiken
 
 // Define global variables
 const int sensorPinF = A0;  // Analoge pin waar de sensor op is aangesloten
@@ -74,4 +75,57 @@ void checkAndSendMessage(PubSubClient& client, int sensorPin, const char* topic,
     // Publish the new sensor value
     publishValue(client, topic, String(sensorValue));
   }
+}
+
+// Constructor: initialiseer de pin en zet de variabelen op 0
+Sensor::Sensor(int pin) {
+    analogPin = pin;
+    readIndex = 0;
+    total = 0;
+    averageDistance = 0;
+    for (int i = 0; i < numReadings; i++) {
+        readings[i] = 0;
+    }
+}
+
+// Functie om de afstand te berekenen en de moving average toe te passen
+float Sensor::getFilteredDistance() {
+    // Lees de waarde van de geselecteerde sensor
+    int sensorValue = analogRead(analogPin);
+
+    // Bereken de afstand op basis van de analoge waarde
+    float distance = calculateDistance(sensorValue);
+
+    // Trek de oudste meting af van de totale som
+    total = total - readings[readIndex];
+
+    // Vervang de oudste meting met de nieuwe afstandswaarde
+    readings[readIndex] = distance;
+
+    // Voeg de nieuwe waarde toe aan de totale som
+    total = total + readings[readIndex];
+
+    // Ga naar de volgende index
+    readIndex = readIndex + 1;
+
+    // Als we het einde van de array hebben bereikt, begin opnieuw bij index 0
+    if (readIndex >= numReadings) {
+        readIndex = 0;
+    }
+
+    // Bereken het gemiddelde van de laatste metingen
+    averageDistance = total / numReadings;
+
+    // Retourneer de gefilterde afstand
+    return averageDistance;
+}
+
+// Hulpfunctie om de afstand te berekenen op basis van de sensorwaarde
+float Sensor::calculateDistance(int sensorValue) {
+    // Converteer de analoge waarde naar spanning
+    float voltage = sensorValue * (3.3 / 4095.0);
+
+    // Omzetten van spanning naar afstand (gebruik de juiste formule voor je specifieke sensor)
+    float distance = 12.08 * pow(voltage, -1.058);  // Voorbeeldformule
+    return distance;
 }
