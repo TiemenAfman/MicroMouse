@@ -379,7 +379,7 @@ void loop() {
   // Check and send messages for the first sensor
   //checkAndSendMessage(mqttClient, sensorPin, "MicroMouse/SensorFront", lastValue);
 
-  bool isWall = wallFront_();  // Roep de functie aan om te controleren of er een muur voor de sensor is
+  bool isWall = wallFront();  // Roep de functie aan om te controleren of er een muur voor de sensor is
   //publishValue(mqttClient, "MicroMouse/IsWallFront", String(isWall));
   float distance = wallDistance(A0);  // Meet de 
   Serial.println(distance);
@@ -415,12 +415,15 @@ void loop() {
   }
 
 if (testButton){
-  debugInfo += "Info: " + moveForward_(400.0) + "\n";
+  debugInfo += "Info: " + moveForward(199.8) + "\n";
   testButton = false;
 }
 
+turn(left);
+
+
 debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
-debugInfo += "Sensor Wall F: " + String(wallFront_()) + " Sensor Wall L: " + String(wallLeft_()) + " Sensor Wall R: " + String(wallRight_()) + "\n";
+debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
   //delay(1000);
 
   // if ( !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
@@ -719,7 +722,7 @@ void get_next_move() {
 }
 
 void move_forward(){
-  moveForward();
+  moveForward(168);
   if (micromouse.current_direction == "N"){
     micromouse.current_position[0] = micromouse.current_position[0];
     micromouse.current_position[1] = micromouse.current_position[1] + 1;
@@ -743,7 +746,7 @@ void move_forward(){
 }
 
 void turn_left(){
-  turnLeft();
+  turn(left);
   if (micromouse.current_direction == "N"){
     micromouse.current_direction = "W";
     log("left new direction: west");
@@ -762,7 +765,7 @@ void turn_left(){
   }
 }
 void turn_right(){
-  turnRight();
+  turn(right);
   if (micromouse.current_direction == "N"){
     micromouse.current_direction = "E";
     log("right new direction: east");

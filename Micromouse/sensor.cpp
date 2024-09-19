@@ -7,7 +7,7 @@ const int sensorPinR = A2;  // Analoge pin waar de sensor op is aangesloten
 
 int lastValue = -1;  // Initialize with a value that your sensor will not output
 
-bool wallFront_() {
+bool wallFront() {
   int sensorValue = analogRead(sensorPinF);  // Lees de waarde van de sensor
   float voltage = sensorValue * (3.3 / 4095.0);  // Converteer de analoge waarde naar spanning
   
@@ -21,7 +21,7 @@ bool wallFront_() {
   return (distance < thresholdDistance);
 }
 
-bool wallLeft_() {
+bool wallLeft() {
   int sensorValue = analogRead(sensorPinL);  // Lees de waarde van de sensor
   float voltage = sensorValue * (3.3 / 2095.0);  // Converteer de analoge waarde naar spanning
   
@@ -35,7 +35,7 @@ bool wallLeft_() {
   return (distance > thresholdDistance);
 }
 
-bool wallRight_() {
+bool wallRight() {
   int sensorValue = analogRead(sensorPinR);  // Lees de waarde van de sensor
   float voltage = sensorValue * (3.3 / 4095.0);  // Converteer de analoge waarde naar spanning
   

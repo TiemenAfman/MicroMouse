@@ -10,9 +10,9 @@ extern const int sensorPinL;  // Analoge pin waar de sensor op is aangesloten
 extern const int sensorPinR;  // Analoge pin waar de sensor op is aangesloten
 extern int lastValue;  // Initialize with a value that your sensor will not output
 
-bool wallFront_();
-bool wallLeft_();
-bool wallRight_();
+bool wallFront();
+bool wallLeft();
+bool wallRight();
 float wallDistance(int channel);
 void checkAndSendMessage(PubSubClient& client, int sensorPin, const char* topic, int& lastValue);
 

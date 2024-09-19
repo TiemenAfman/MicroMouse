@@ -12,29 +12,29 @@ int mazeHeight() {
     return getInteger("mazeHeight");
 }
 
-bool wallFront() {
-    return getBoolean("wallFront");
-}
+// bool wallFront() {
+//     return getBoolean("wallFront");
+// }
 
-bool wallRight() {
-    return getBoolean("wallRight");
-}
+// bool wallRight() {
+//     return getBoolean("wallRight");
+// }
 
-bool wallLeft() {
-    return getBoolean("wallLeft");
-}
+// bool wallLeft() {
+//     return getBoolean("wallLeft");
+// }
 
-bool moveForward() {
-    return getAck("moveForward");
-}
+// bool moveForward() {
+//     return getAck("moveForward");
+// }
 
-void turnRight() {
-    getAck("turnRight");
-}
+// void turnRight() {
+//     getAck("turnRight");
+// }
 
-void turnLeft() {
-    getAck("turnLeft");
-}
+// void turnLeft() {
+//     getAck("turnLeft");
+// }
 
 void setWall(int x, int y, char direction) {
     Serial.print(
