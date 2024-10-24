@@ -2,12 +2,11 @@
 #include <AccelStepper.h>
 
 // Define global variables
-const int motorL_step_pin = D7; // Step pin
-const int motorL_dir_pin = D8;  // Dir pin 
-const int motorR_step_pin = D9; // Step pin
-const int motorR_dir_pin = D10;  // Dir pin
-const int ENBL_PINL = D6; //disable steppers when high
-const int ENBL_PINR = D5; //disable steppers when high
+const int motorL_step_pin = D8; // Step pin
+const int motorL_dir_pin = D7;  // Dir pin 
+const int motorR_step_pin = D10; // Step pin
+const int motorR_dir_pin = D9;  // Dir pin
+const int ENBL_PIN = D4; //disable steppers when high
 const int left = 1;
 const int right = -1;
 

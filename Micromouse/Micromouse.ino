@@ -230,10 +230,8 @@ void setup() {
   digitalWrite(motorL_dir_pin, LOW);  
   digitalWrite(motorR_dir_pin, HIGH);  
   // enable steppers
-  pinMode(ENBL_PINL, OUTPUT);
-  digitalWrite(ENBL_PINL, HIGH);  
-  pinMode(ENBL_PINR, OUTPUT);
-  digitalWrite(ENBL_PINR, HIGH);  
+  pinMode(ENBL_PIN, OUTPUT);
+  digitalWrite(ENBL_PIN, HIGH);  
 
   // WiFi and OTA
     // Set up the Access Point
@@ -348,8 +346,7 @@ void handleEnblToggle() {
   enblState = !enblState;
   
   // Zet de Enable-pin op hoog of laag
-  digitalWrite(ENBL_PINL, enblState ? LOW : HIGH);  // Laag betekent de driver is ingeschakeld, hoog betekent uitgeschakeld
-  digitalWrite(ENBL_PINR, enblState ? LOW : HIGH);  // Laag betekent de driver is ingeschakeld, hoog betekent uitgeschakeld
+  digitalWrite(ENBL_PIN, enblState ? LOW : HIGH);  // Laag betekent de driver is ingeschakeld, hoog betekent uitgeschakeld
 
   // Stuur de nieuwe status terug als JSON
   String jsonResponse = "{\"enblState\":";
@@ -419,7 +416,7 @@ if (testButton){
   testButton = false;
 }
 
-turn(left);
+//turn(left);
 
 
 debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
