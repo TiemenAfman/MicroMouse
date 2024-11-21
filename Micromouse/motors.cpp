@@ -1,5 +1,7 @@
 #include "motors.h"
 #include <AccelStepper.h>
+#include "sensor.h"
+#include <RunningAverage.h>
 
 // Define global variables
 const int motorL_step_pin = D8; // Step pin
@@ -14,23 +16,35 @@ const int right = -1;
 AccelStepper stepperL(AccelStepper::DRIVER, motorL_step_pin, motorL_dir_pin); // pin 2 = pulssignaal, pin 3 = richtingssignaal
 AccelStepper stepperR(AccelStepper::DRIVER, motorR_step_pin, motorR_dir_pin); // pin 2 = pulssignaal, pin 3 = richtingssignaal
 
-float kp = 0.4, ki = 0.0, kd = 0.0;
+float kp = 10, ki = 0.0, kd = 0.0;
 float error, previous_error, integral, derivative, pid_output;
 unsigned long motor1_last_step_time = 0;
 unsigned long motor2_last_step_time = 0;
 
 unsigned long last_time = millis();
 
-int base_steps_per_second = 800;  // Basis aantal stappen per seconde voor beide motoren
+int base_steps_per_second = 1000;  // Basis aantal stappen per seconde voor beide motoren
 int motor1_steps_per_second = 0;
 int motor2_steps_per_second = 0;
 
 int lastError = 0;  // Variabele om de fout van de vorige cyclus op te slaan
 
-const int steps_per_revolution = 200;   // Stel het aantal stappen per omwenteling van de motor in
-const float wheel_circumference = 199.8; // Omtrek van het wiel in cm
-const float distanceBetweenWheels = 0.1064;  // Afstand tussen de wielen in meters (bv. 10.64 cm)
+// 1/1 stap (volledige stap): M0 = laag, M1 = laag, M2 = laag
+// 1/2 stap: M0 = hoog, M1 = laag, M2 = laag
+// 1/4 stap: M0 = laag, M1 = hoog, M2 = laag <------
+// 1/8 stap: M0 = hoog, M1 = hoog, M2 = laag  
+// 1/16 stap: M0 = laag, M1 = laag, M2 = hoog
+// 1/32 stap: M0 = hoog, M1 = hoog, M2 = hoog
 
+const int steps_per_revolution = 200 * 4;   // Stel het aantal stappen per omwenteling van de motor in. 
+const float wheel_circumference = 199.8; // Omtrek van het wiel in mm
+const float distanceBetweenWheels = 105;  // Afstand tussen de wielen in mm (bv. 106.4 mm)
+
+RunningAverage Avg_SensorLeft(10);
+RunningAverage Avg_SensorRight(10);
+
+float FilteredLeft;
+float FilteredRight;
 
 String moveForward(float distance_cm) {
   String info = "";
@@ -42,43 +56,62 @@ String moveForward(float distance_cm) {
   stepperL.move(steps_needed);
   stepperR.move(steps_needed);
 
+  stepperR.setAcceleration(10000);                   // Acceleratie in stappen per seconde^2
+  stepperL.setAcceleration(10000);                   // Acceleratie in stappen per seconde^2
+
   // Blijf motoren bewegen totdat beide het benodigde aantal stappen hebben genomen
-  while (stepperL.distanceToGo() != 0 && stepperR.distanceToGo() != 0 && !wallFront()) {
+  while (stepperL.distanceToGo() != 0 && stepperR.distanceToGo() != 0) {
+
+    // Avg_SensorLeft.addValue(wallDistance(sensorPinL));
+    // Avg_SensorRight.addValue(wallDistance(sensorPinR));
+    
+    // sensor_left = Avg_SensorLeft.getAverage();
+    // sensor_right = Avg_SensorRight.getAverage();
 
     // Lees de sensoren in elke cyclus om de PID-aanpassing te updaten
-    float sensor_left = wallDistance(A1);
-    float sensor_right = wallDistance(A2);
+    float sensor_left = wallDistance(sensorPinL);
+    float sensor_right = wallDistance(sensorPinR);
 
-    if (wallLeft() && !wallRight()){        // wel muur links maar rechts niet
-      sensor_right = 10;                      // zet rechter sensor op vaste waarde
-    } else if(!wallLeft() && wallRight()){  // wel muur rechts maar links niet
-      sensor_left = 10;                       // zet linker sensor op vaste waarde
+    // if (wallLeft() && !wallRight()){        // wel muur links maar rechts niet
+    //   sensor_right = 89;                      // zet rechter sensor op vaste waarde
+    // } else if(!wallLeft() && wallRight()){  // wel muur rechts maar links niet
+    //   sensor_left = 89;                       // zet linker sensor op vaste waarde
+    // }
+    // if (wallLeft() || wallRight()){         // als muur links of rechts bereken dan pid
+    //   // PID-berekeningen herberekenen tijdens elke iteratie
+    //   calculatePID(sensor_left, sensor_right);      
+    // } else{                                   // geen muren dan rechtdoor rijden
+    //   pid_output = 0;
+    // }
+
+    if (wallLeft() && wallRight()){
+    calculatePID(sensor_left, sensor_right); 
     }
-    if (wallLeft() || wallRight()){         // als muur links of rechts bereken dan pid
-      // PID-berekeningen herberekenen tijdens elke iteratie
-      calculatePID(sensor_left, sensor_right);      
-    } else{                                   // geen muren dan rechtdoor rijden
-      pid_output = 0;
+    else {
+    pid_output = 0;
     }
 
+       
+    //pid_output = -300;
+    
     // Bereken het aantal stappen per seconde voor beide motoren
-    float motor1_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor linkermotor
-    float motor2_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor rechtermotor
+    float motor1_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor linkermotor
+    float motor2_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor rechtermotor
 
     // Zorg ervoor dat de stappen per seconde niet negatief zijn
-    motor1_steps_per_second = constrain(motor1_steps_per_second, 10, base_steps_per_second + 50);
-    motor2_steps_per_second = constrain(motor2_steps_per_second, 10, base_steps_per_second + 50);
+    motor1_steps_per_second = constrain(motor1_steps_per_second, base_steps_per_second - 600, base_steps_per_second + 1000);
+    motor2_steps_per_second = constrain(motor2_steps_per_second, base_steps_per_second - 600, base_steps_per_second + 1000);
 
     // Update de motoren en kijk of ze verder kunnen stappen
     stepperL.setMaxSpeed(motor1_steps_per_second);  // Maximale snelheid in stappen per seconde
-    stepperL.setAcceleration(500);                   // Acceleratie in stappen per seconde^2
     stepperR.setMaxSpeed(motor2_steps_per_second);  // Maximale snelheid in stappen per seconde
-    stepperR.setAcceleration(500);                   // Acceleratie in stappen per seconde^2
 
     // Laat de motoren stappen
     stepperL.run();  // Motor bewegen
     stepperR.run();  // Motor bewegen
   }
+
+  info = "Done";
 
   return info;
 }
@@ -102,6 +135,10 @@ void calculatePID(float sensor_left, float sensor_right) {
 void turn(int direction){
   stepperL.setCurrentPosition(0);
   stepperR.setCurrentPosition(0);
+  stepperR.setAcceleration(10000);                   // Acceleratie in stappen per seconde^2
+  stepperL.setAcceleration(10000);                   // Acceleratie in stappen per seconde^2
+  stepperL.setMaxSpeed(base_steps_per_second);  // Maximale snelheid in stappen per seconde
+  stepperR.setMaxSpeed(base_steps_per_second);  // Maximale snelheid in stappen per seconde
 
   // Bereken de rotatie-omtrek voor 90 graden draaien
   float rotationCircumference = PI * distanceBetweenWheels;
@@ -117,7 +154,7 @@ void turn(int direction){
   stepperR.move(stepsToTurn * direction);
 
   // Beweeg de motoren tot ze klaar zijn
-  while (stepperL.distanceToGo() != 0 || stepperR.distanceToGo() != 0) {
+  while (stepperL.distanceToGo() != 0 && stepperR.distanceToGo() != 0) {
     stepperL.run();
     stepperR.run();
   }

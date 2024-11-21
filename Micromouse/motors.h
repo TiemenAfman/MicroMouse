@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "sensor.h"
 #include <AccelStepper.h>
+#include <RunningAverage.h>
 
 extern const int motorL_step_pin; // Step pin
 extern const int motorL_dir_pin;  // Dir pin
@@ -13,6 +14,9 @@ extern const int ENBL_PIN; //disable steppers  when high
 extern unsigned long last_time;
 extern const int left;
 extern const int right;
+
+extern RunningAverage Avg_SensorLeft;
+extern RunningAverage Avg_SensorRight;
 
 String moveForward(float distance_cm);
 void calculatePID(float sensor_left, float sensor_right);

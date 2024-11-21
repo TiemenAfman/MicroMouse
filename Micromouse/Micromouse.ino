@@ -29,6 +29,9 @@ String message = "Log Started";
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);  // Create a PubSubClient object with the WiFiClient
 
+// Rastergegevens
+int gridData[16][16][2]; // 16x16 raster met 2 getallen per cel
+
 // 
 bool testButton = false;
 bool enblState = false;
@@ -227,12 +230,14 @@ void setup() {
   pinMode(motorR_step_pin, OUTPUT);
   pinMode(motorR_dir_pin, OUTPUT);
   // Stel beginrichting in (bijvoorbeeld vooruit)
-  digitalWrite(motorL_dir_pin, LOW);  
-  digitalWrite(motorR_dir_pin, HIGH);  
+  digitalWrite(motorL_dir_pin, HIGH);  
+  digitalWrite(motorR_dir_pin, LOW);  
   // enable steppers
   pinMode(ENBL_PIN, OUTPUT);
   digitalWrite(ENBL_PIN, HIGH);  
 
+  Avg_SensorLeft.clear();
+  Avg_SensorRight.clear();
   // WiFi and OTA
     // Set up the Access Point
   WiFi.softAP(ssid, password);
@@ -285,6 +290,14 @@ void setup() {
 
   mqttClient.setServer(mqtt_server, mqtt_port);
   mqttClient.setCallback(callback);
+
+    // Raster initialiseren
+  for (int i = 0; i < 16; i++) {
+    for (int j = 0; j < 16; j++) {
+      gridData[i][j][0] = 0; // Initieer het eerste getal
+      gridData[i][j][1] = 0; // Initieer het tweede getal
+    }
+  }
 }
 
 void handleRoot() {
@@ -322,10 +335,23 @@ void handleRoot() {
   html += "}";
   html += "</script>";
 
+  // Voeg het raster toe
+  html += "<div style='display: grid; grid-template-columns: repeat(16, 50px); grid-gap: 5px;'>";
+  for (int i = 0; i < 16; i++) {
+    for (int j = 0; j < 16; j++) {
+      html += "<div style='width: 50px; height: 50px; text-align: center; line-height: 25px; border: 1px solid black;'>";
+      html += "<span>" + String(gridData[i][j][0]) + "</span><br>"; // Eerste getal
+      html += "<span>" + String(gridData[i][j][1]) + "</span>";     // Tweede getal
+      html += "</div>";
+    }
+  }
+  html += "</div>";
+
   // Debug info toevoegen zoals eerder
   html += "<pre>";
   html += debugInfo;
   html += "</pre></body></html>";
+  
 
   server.send(200, "text/html", html);
 }
@@ -376,50 +402,20 @@ void loop() {
   // Check and send messages for the first sensor
   //checkAndSendMessage(mqttClient, sensorPin, "MicroMouse/SensorFront", lastValue);
 
-  bool isWall = wallFront();  // Roep de functie aan om te controleren of er een muur voor de sensor is
-  //publishValue(mqttClient, "MicroMouse/IsWallFront", String(isWall));
-  float distance = wallDistance(A0);  // Meet de 
-  Serial.println(distance);
-  //debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
-  //debugInfo += "Sensor Value: " + String(distance, 2) + "\n";
-
-  if (false){
-    if (isWall) {
-      message = "Muur gedetecteerd!";
-    } else {
-      message = "Geen muur gedetecteerd";
-
-      
-      
-      // Bereken de snelheid van de stappenmotor op basis van de afstand
-      // Hoe dichter bij de muur, hoe langzamer de motor draait
-      // Pas deze formule aan naar wens
-      int speed = map(distance, 3, 15, 1000, 100); // Snelheid in microseconden, afhankelijk van afstand
-      debugInfo += "Speed Value: " + String(speed, 2) + "\n";
-      //moveForward_();
-      // Limiteer de snelheid om te voorkomen dat deze te snel of te langzaam wordt
-      speed = constrain(speed, 100, 1000);
-
-      // Stappenmotor aansturen
-      digitalWrite(motorL_step_pin, HIGH);
-      digitalWrite(motorR_step_pin, HIGH);
-      delayMicroseconds(speed); // Pas de snelheid aan
-      digitalWrite(motorL_step_pin, LOW);
-      digitalWrite(motorR_step_pin, LOW);
-      delayMicroseconds(speed); // Pas de snelheid aan
-
-    }
-  }
-
 if (testButton){
-  debugInfo += "Info: " + moveForward(199.8) + "\n";
   testButton = false;
+  //debugInfo += "Info: " + moveForward(600) + "\n";
+  //turn(left);
 }
 
-//turn(left);
+  if (wallFront()){
+    gridData[0][0][1] = 1;
+  }
+  else{
+    gridData[0][0][1] = -1;
+  }
 
-
-debugInfo = "Sensor Value F: " + String(wallDistance(A0), 2) + " Sensor Value L: " + String(wallDistance(A1), 2) + " Sensor Value R: " + String(wallDistance(A2), 2) + "\n";
+debugInfo = "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
 debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
   //delay(1000);
 
