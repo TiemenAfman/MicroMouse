@@ -15,7 +15,7 @@ bool wallFront() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 4.5; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 6.0; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
   return (distance < thresholdDistance);
@@ -29,7 +29,7 @@ bool wallLeft() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 45.0; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 5.0; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
   return (distance > thresholdDistance);
@@ -43,7 +43,7 @@ bool wallRight() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 45.0; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 5.0; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
   return (distance > thresholdDistance);

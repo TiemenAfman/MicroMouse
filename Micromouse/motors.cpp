@@ -38,7 +38,7 @@ int lastError = 0;  // Variabele om de fout van de vorige cyclus op te slaan
 
 const int steps_per_revolution = 200 * 4;   // Stel het aantal stappen per omwenteling van de motor in. 
 const float wheel_circumference = 199.8; // Omtrek van het wiel in mm
-const float distanceBetweenWheels = 105;  // Afstand tussen de wielen in mm (bv. 106.4 mm)
+const float distanceBetweenWheels = 109;  // Afstand tussen de wielen in mm (bv. 106.4 mm)
 
 RunningAverage Avg_SensorLeft(10);
 RunningAverage Avg_SensorRight(10);

@@ -30,7 +30,8 @@ WiFiClient espClient;
 PubSubClient mqttClient(espClient);  // Create a PubSubClient object with the WiFiClient
 
 // Rastergegevens
-int gridData[16][16][2]; // 16x16 raster met 2 getallen per cel
+int gridData[5][5][2]; // raster met 2 getallen per cel
+
 
 // 
 bool testButton = false;
@@ -104,7 +105,7 @@ class FIFOBuffer {
 
 class MicroMouse {
   public:
-    static const int maze_size = 16;
+    static const int maze_size = 5;
     int maze[maze_size][maze_size];
     int walls[maze_size][maze_size];
     bool visited[maze_size][maze_size];
@@ -143,17 +144,17 @@ class MicroMouse {
       FIFOBuffer fifo(50);
 
       // Set goal to 0 and add to buffer
-      maze[goalX - 1][goalY - 1] = 0;
-      fifo.enqueue(goalX - 1, goalY - 1);
+      // maze[goalX - 1][goalY - 1] = 0;
+      // fifo.enqueue(goalX - 1, goalY - 1);
 
       maze[goalX][goalY] = 0;
       fifo.enqueue(goalX, goalY);
 
-      maze[goalX - 1][goalY] = 0;
-      fifo.enqueue(goalX - 1, goalY);
+      // maze[goalX - 1][goalY] = 0;
+      // fifo.enqueue(goalX - 1, goalY);
 
-      maze[goalX][goalY - 1] = 0;
-      fifo.enqueue(goalX, goalY - 1);
+      // maze[goalX][goalY - 1] = 0;
+      // fifo.enqueue(goalX, goalY - 1);
 
       // Dequeue items from buffer
       while (fifo.size() > 0) {
@@ -292,8 +293,8 @@ void setup() {
   mqttClient.setCallback(callback);
 
     // Raster initialiseren
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 16; j++) {
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
       gridData[i][j][0] = 0; // Initieer het eerste getal
       gridData[i][j][1] = 0; // Initieer het tweede getal
     }
@@ -336,9 +337,9 @@ void handleRoot() {
   html += "</script>";
 
   // Voeg het raster toe
-  html += "<div style='display: grid; grid-template-columns: repeat(16, 50px); grid-gap: 5px;'>";
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 16; j++) {
+  html += "<div style='display: grid; grid-template-columns: repeat(5, 50px); grid-gap: 5px;'>";
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
       html += "<div style='width: 50px; height: 50px; text-align: center; line-height: 25px; border: 1px solid black;'>";
       html += "<span>" + String(gridData[i][j][0]) + "</span><br>"; // Eerste getal
       html += "<span>" + String(gridData[i][j][1]) + "</span>";     // Tweede getal
@@ -383,10 +384,6 @@ void handleEnblToggle() {
 }
 
 
-
-
-
-
 void loop() {
   // if (!mqttClient.connected()) {
   //   reconnect();
@@ -406,6 +403,47 @@ if (testButton){
   testButton = false;
   //debugInfo += "Info: " + moveForward(600) + "\n";
   //turn(left);
+  //moveForward(168);
+
+    if (!isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
+      //log("Running...");
+      updateMaze2(micromouse.current_position[0],micromouse.current_position[1]);
+      get_next_move();
+    }
+    // else{
+    //       ; //log("finish!");
+      
+    //   // // Show the flood values and walls in the maze
+    //   // for (int i = 0; i < micromouse.maze_size; i++) {
+    //   //     for (int j = 0; j < micromouse.maze_size; j++) {
+    //   //         setText(i, j, String(micromouse.maze[i][j]));
+    //   //         if (micromouse.walls[i][j] & micromouse.NORTH) setWall(i, j, 'n');
+    //   //         if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
+    //   //         if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
+    //   //         if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
+    //   //     }
+    //   // }
+
+    //   // //reset and start again
+    //   // micromouse.current_position[0] = 0;
+    //   // micromouse.current_position[1] = 0;
+    //   // micromouse.current_direction = "N";
+    //   // ackReset();
+
+    //   // if (wasReset()){
+    //   //   //reset and start again
+    //   //   micromouse.current_position[0] = 0;
+    //   //   micromouse.current_position[1] = 0;
+    //   //   micromouse.current_direction = "N";
+    //   //   ackReset();
+    //   // }
+
+    //   // Wacht even
+    //   // for (int i = 0; i < 1; i++) {
+    //   //   delay(1);
+    //   //   ArduinoOTA.handle();
+    //   // }  
+    // }
 }
 
   if (wallFront()){
@@ -419,45 +457,7 @@ debugInfo = "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor 
 debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
   //delay(1000);
 
-  // if ( !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
-  //     log("Running...");
-  //     updateMaze2(micromouse.current_position[0],micromouse.current_position[1]);
-  //     get_next_move();
-  //   }
-  // else{
-  //       log("finish!");
-    
-  //   // Show the flood values and walls in the maze
-  //   for (int i = 0; i < micromouse.maze_size; i++) {
-  //       for (int j = 0; j < micromouse.maze_size; j++) {
-  //           setText(i, j, String(micromouse.maze[i][j]));
-  //           if (micromouse.walls[i][j] & micromouse.NORTH) setWall(i, j, 'n');
-  //           if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
-  //           if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
-  //           if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
-  //       }
-  //   }
-
-  //   // //reset and start again
-  //   // micromouse.current_position[0] = 0;
-  //   // micromouse.current_position[1] = 0;
-  //   // micromouse.current_direction = "N";
-  //   // ackReset();
-  // }
-
-  // if (wasReset()){
-  //   //reset and start again
-  //   micromouse.current_position[0] = 0;
-  //   micromouse.current_position[1] = 0;
-  //   micromouse.current_direction = "N";
-  //   ackReset();
-  // }
-
-  // Wacht even
-  // for (int i = 0; i < 1; i++) {
-  //   delay(1);
-  //   ArduinoOTA.handle();
-  // }    
+  
 
   
 //publishValue(mqttClient, "MicroMouse/Log", message);
@@ -692,7 +692,7 @@ void get_next_move() {
               } else if (micromouse.current_direction == "E") {
                   turn_left();
               } else if (micromouse.current_direction == "S") {
-                  turn_left();
+                  turn_left(); 
               }
           }
       } else if (nx == x && ny == y - 1) {
