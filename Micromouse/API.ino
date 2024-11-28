@@ -37,12 +37,13 @@ int mazeHeight() {
 // }
 
 void setWall(int x, int y, char direction) {
-    Serial.print(
+    espClient.print(
         "setWall "
         + String(x) + " "
         + String(y) + " "
         + String(direction) + "\n"
     );
+    delay(50);
 }
 
 void clearWall(int x, int y, char direction) {
@@ -76,12 +77,13 @@ void clearAllColor() {
 }
 
 void setText(int x, int y, String text) {
-    Serial.print(
+    espClient.print(
         "setText "
         + String(x) + " "
         + String(y) + " "
         + text + "\n"
     );
+    delay(50);
 }
 
 void clearText(int x, int y) {

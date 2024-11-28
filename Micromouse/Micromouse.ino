@@ -393,8 +393,12 @@ if (testButton){
   //debugInfo += "Info: " + moveForward(600) + "\n";
   //turn(left);
   //moveForward(550);
-
-    if (!isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
+  //message = "test";
+  //setWall(0, 0, 'n');
+    debugInfo += "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
+    debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
+    
+    if (false && !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
       //log("Running...");
       updateMaze2(micromouse.current_position[0],micromouse.current_position[1]);
       get_next_move();
@@ -568,11 +572,11 @@ void updateMaze2(int x, int y) {
     // Show the flood values and walls in the maze
     for (int i = 0; i < micromouse.maze_size; i++) {
         for (int j = 0; j < micromouse.maze_size; j++) {
-            // setText(i, j, String(micromouse.maze[i][j]));
-            // if (micromouse.walls[i][j] & micromouse.NORTH) setWall(i, j, 'n');
-            // if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
-            // if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
-            // if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
+            setText(i, j, String(micromouse.maze[i][j]));
+            if (micromouse.walls[i][j] & micromouse.NORTH) setWall(i, j, 'n');
+            if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
+            if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
+            if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
 
             gridData[i][j][0] = micromouse.maze[i][j];    // set het eerste getal (FLoodValue)
             gridData[i][j][1] = micromouse.walls[i][j];   // set het tweede getal (walls)
