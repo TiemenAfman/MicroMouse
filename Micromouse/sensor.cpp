@@ -63,15 +63,4 @@ float wallDistance(int AnalogPin){
   return distance;
 }
 
-// Function to read sensor value, check for change, and publish if changed
-void checkAndSendMessage(PubSubClient& client, int sensorPin, const char* topic, int& lastValue) {
-  int sensorValue = analogRead(sensorPin);  // Read the sensor value
 
-  // Check if the sensor value has changed
-  if (sensorValue != lastValue) {
-    lastValue = sensorValue;  // Update the last value
-
-    // Publish the new sensor value
-    publishValue(client, topic, String(sensorValue));
-  }
-}

@@ -1,7 +1,6 @@
 #include "motors.h"
 #include <AccelStepper.h>
 #include "sensor.h"
-#include <RunningAverage.h>
 
 // Define global variables
 const int motorL_step_pin = D8; // Step pin
@@ -40,9 +39,6 @@ const int steps_per_revolution = 200 * 4;   // Stel het aantal stappen per omwen
 const float wheel_circumference = 199.8; // Omtrek van het wiel in mm
 const float distanceBetweenWheels = 109;  // Afstand tussen de wielen in mm (bv. 106.4 mm)
 
-RunningAverage Avg_SensorLeft(10);
-RunningAverage Avg_SensorRight(10);
-
 float FilteredLeft;
 float FilteredRight;
 
@@ -61,12 +57,6 @@ String moveForward(float distance_cm) {
 
   // Blijf motoren bewegen totdat beide het benodigde aantal stappen hebben genomen
   while (stepperL.distanceToGo() != 0 && stepperR.distanceToGo() != 0) {
-
-    // Avg_SensorLeft.addValue(wallDistance(sensorPinL));
-    // Avg_SensorRight.addValue(wallDistance(sensorPinR));
-    
-    // sensor_left = Avg_SensorLeft.getAverage();
-    // sensor_right = Avg_SensorRight.getAverage();
 
     // Lees de sensoren in elke cyclus om de PID-aanpassing te updaten
     float sensor_left = wallDistance(sensorPinL);
@@ -90,13 +80,10 @@ String moveForward(float distance_cm) {
     else {
     pid_output = 0;
     }
-
-       
-    //pid_output = -300;
     
     // Bereken het aantal stappen per seconde voor beide motoren
-    float motor1_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor linkermotor
-    float motor2_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor rechtermotor
+    float motor1_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor linkermotor
+    float motor2_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor rechtermotor
 
     // Zorg ervoor dat de stappen per seconde niet negatief zijn
     motor1_steps_per_second = constrain(motor1_steps_per_second, base_steps_per_second - 600, base_steps_per_second + 1000);

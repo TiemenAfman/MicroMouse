@@ -2,9 +2,7 @@
 #include <WebServer.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <PubSubClient.h>
 #include <DNSServer.h>
-#include "sendMessage.h"  
 #include "sensor.h"
 #include "Stepper.h"
 #include "motors.h"
@@ -18,16 +16,11 @@ WebServer server(80);
 
 String debugInfo = "Debugging Information:\n";
 
-// Replace with your MQTT Broker's IP address or hostname
-const char* mqtt_server = "192.168.178.80";
-const int mqtt_port = 1883;
-
 //Password OTA = Admin
 
 String message = "Log Started";
 
 WiFiClient espClient;
-PubSubClient mqttClient(espClient);  // Create a PubSubClient object with the WiFiClient
 
 // Rastergegevens
 int gridData[5][5][2]; // raster met 2 getallen per cel
@@ -190,30 +183,7 @@ class MicroMouse {
 
 MicroMouse micromouse;
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-}
 
-void reconnect() {
-  while (!mqttClient.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    if (mqttClient.connect("ESP8266Client")) {
-      Serial.println("connected");
-      mqttClient.subscribe("test/topic"); // Subscribe to a topic if needed
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
-    }
-  }
-}
 
 void setup() {
   // serial communication
@@ -236,9 +206,6 @@ void setup() {
   // enable steppers
   pinMode(ENBL_PIN, OUTPUT);
   digitalWrite(ENBL_PIN, HIGH);  
-
-  Avg_SensorLeft.clear();
-  Avg_SensorRight.clear();
   // WiFi and OTA
     // Set up the Access Point
   WiFi.softAP(ssid, password);
@@ -289,8 +256,6 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 
-  mqttClient.setServer(mqtt_server, mqtt_port);
-  mqttClient.setCallback(callback);
 
     // Raster initialiseren
   for (int i = 0; i < 5; i++) {
@@ -342,7 +307,7 @@ void handleRoot() {
     for (int j = 0; j < 5; j++) {
       html += "<div style='width: 50px; height: 50px; text-align: center; line-height: 25px; border: 1px solid black;'>";
       html += "<span>" + String(gridData[i][j][0]) + "</span><br>"; // Eerste getal
-      html += "<span>" + String(gridData[i][j][1]) + "</span>";     // Tweede getal
+      html += "<span>" + String(gridData[i][j][1], BIN) + "</span>"; // Tweede getal als binaire string
       html += "</div>";
     }
   }
@@ -409,6 +374,8 @@ if (testButton){
       //log("Running...");
       updateMaze2(micromouse.current_position[0],micromouse.current_position[1]);
       get_next_move();
+      debugInfo += "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
+      debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
     }
     // else{
     //       ; //log("finish!");
@@ -446,15 +413,9 @@ if (testButton){
     // }
 }
 
-  if (wallFront()){
-    gridData[0][0][1] = 1;
-  }
-  else{
-    gridData[0][0][1] = -1;
-  }
 
-debugInfo = "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
-debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
+//debugInfo = "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
+//debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
   //delay(1000);
 
   
@@ -535,17 +496,17 @@ void updateMaze2(int x, int y) {
     }
     
     // Set goal points and add to buffer
-    micromouse.maze[micromouse.maze_size/2 - 1][micromouse.maze_size/2 - 1] = 0;
-    fifo.enqueue(micromouse.maze_size/2 - 1, micromouse.maze_size/2 - 1);
+    // micromouse.maze[micromouse.maze_size/2 - 1][micromouse.maze_size/2 - 1] = 0;
+    // fifo.enqueue(micromouse.maze_size/2 - 1, micromouse.maze_size/2 - 1);
     
     micromouse.maze[micromouse.maze_size/2][micromouse.maze_size/2] = 0;
     fifo.enqueue(micromouse.maze_size/2, micromouse.maze_size/2);
     
-    micromouse.maze[micromouse.maze_size/2 - 1][micromouse.maze_size/2] = 0;
-    fifo.enqueue(micromouse.maze_size/2 - 1, micromouse.maze_size/2);
+    // micromouse.maze[micromouse.maze_size/2 - 1][micromouse.maze_size/2] = 0;
+    // fifo.enqueue(micromouse.maze_size/2 - 1, micromouse.maze_size/2);
     
-    micromouse.maze[micromouse.maze_size/2][micromouse.maze_size/2 - 1] = 0;
-    fifo.enqueue(micromouse.maze_size/2, micromouse.maze_size/2 - 1);
+    // micromouse.maze[micromouse.maze_size/2][micromouse.maze_size/2 - 1] = 0;
+    // fifo.enqueue(micromouse.maze_size/2, micromouse.maze_size/2 - 1);
     
     // Dequeue items from buffer
     while (fifo.size() > 0) {
@@ -588,6 +549,9 @@ void updateMaze2(int x, int y) {
             // if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
             // if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
             // if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
+
+            gridData[i][j][0] = micromouse.maze[i][j];    // set het eerste getal (FLoodValue)
+            gridData[i][j][1] = micromouse.walls[i][j];   // set het tweede getal (walls)
         }
     }
 }
@@ -606,7 +570,7 @@ void get_next_move() {
         int nx = x + (micromouse.current_direction == "E") - (micromouse.current_direction == "W");
         int ny = y + (micromouse.current_direction == "N") - (micromouse.current_direction == "S");
         add_move(possible_moves, move_count, nx, ny);
-        log("no wall front: add move");
+        debugInfo += "no wall front: add move";
         log("nx: " + String(nx) + " ny: " + String(ny));
     }
 
@@ -622,7 +586,7 @@ void get_next_move() {
             nx = x; ny = y + 1;
         }
         add_move(possible_moves, move_count, nx, ny);
-        log("no wall right: add move");
+        debugInfo += "no wall right: add move";
     }
 
     if (!wallLeft()) {
@@ -637,7 +601,7 @@ void get_next_move() {
             nx = x; ny = y - 1;
         }
         add_move(possible_moves, move_count, nx, ny);
-        log("no wall left: add move");
+        debugInfo += "no wall left: add move";
     }
 
     if (wallLeft() && wallRight() && wallFront()) {
@@ -652,7 +616,7 @@ void get_next_move() {
             nx = x + 1; ny = y;
         }
         add_move(possible_moves, move_count, nx, ny);
-        log("dead end: add move");
+        debugInfo += "dead end: add move";
     }
 
     int* next_move = find_min_move(possible_moves, move_count);
@@ -715,7 +679,7 @@ void get_next_move() {
 }
 
 void move_forward(){
-  moveForward(168);
+  moveForward(183);
   if (micromouse.current_direction == "N"){
     micromouse.current_position[0] = micromouse.current_position[0];
     micromouse.current_position[1] = micromouse.current_position[1] + 1;
