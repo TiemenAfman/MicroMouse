@@ -14,11 +14,14 @@ const char* password = "12345678";
 // Instantiate Web server on port 80
 WebServer server(80);
 
+// Socketserver op poort 1234
+WiFiServer socketServer(1234);
+
 String debugInfo = "Debugging Information:\n";
 
 //Password OTA = Admin
 
-String message = "Log Started";
+String message = "started";
 
 WiFiClient espClient;
 
@@ -252,10 +255,12 @@ void setup() {
   server.on("/toggle", handleToggle);
   server.on("/enblToggle", handleEnblToggle); 
 
-  //start de server
+  //start de webserver
   server.begin();
   Serial.println("HTTP server started");
 
+  // Socketserver starten
+  socketServer.begin();
 
     // Raster initialiseren
   for (int i = 0; i < 5; i++) {
@@ -264,6 +269,7 @@ void setup() {
       gridData[i][j][1] = 0; // Initieer het tweede getal
     }
   }
+
 }
 
 void handleRoot() {
@@ -349,20 +355,38 @@ void handleEnblToggle() {
 }
 
 
+
 void loop() {
-  // if (!mqttClient.connected()) {
-  //   reconnect();
-  // }
-  //mqttClient.loop();
+    // Controleren op nieuwe clients
+    if (!espClient || !espClient.connected()) {
+        espClient = socketServer.available(); // Accepteer nieuwe verbindingen
+        if (espClient) {
+            Serial.println("Nieuwe client verbonden!");
+        }
+    }
+
+    // Als de client verbonden is
+    if (espClient && espClient.connected()) {
+        // Verzenden van een bericht naar de client als er iets in `message` staat
+        if (message != "") {
+            espClient.println(message);
+            Serial.println("Bericht verzonden: " + message);
+            message = ""; // Reset message na verzending
+        }
+
+        // Ontvangen van data van de client
+        if (espClient.available()) {
+            String received = espClient.readStringUntil('\n');
+            Serial.println("Ontvangen van client: " + received);
+            espClient.println("Echo: " + received); // Echo het bericht terug
+        }
+    }
   
   // Handle OTA events
   ArduinoOTA.handle();
 
   // Handle Web server events
   server.handleClient();
-
-  // Check and send messages for the first sensor
-  //checkAndSendMessage(mqttClient, sensorPin, "MicroMouse/SensorFront", lastValue);
 
 if (testButton){
   testButton = false;
