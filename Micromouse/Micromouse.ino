@@ -403,7 +403,7 @@ if (testButton){
   testButton = false;
   //debugInfo += "Info: " + moveForward(600) + "\n";
   //turn(left);
-  //moveForward(168);
+  //moveForward(550);
 
     if (!isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
       //log("Running...");
@@ -715,7 +715,7 @@ void get_next_move() {
 }
 
 void move_forward(){
-  moveForward(168);
+  moveForward(183);
   if (micromouse.current_direction == "N"){
     micromouse.current_position[0] = micromouse.current_position[0];
     micromouse.current_position[1] = micromouse.current_position[1] + 1;

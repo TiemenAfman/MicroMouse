@@ -95,8 +95,8 @@ String moveForward(float distance_cm) {
     //pid_output = -300;
     
     // Bereken het aantal stappen per seconde voor beide motoren
-    float motor1_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor linkermotor
-    float motor2_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor rechtermotor
+    float motor1_steps_per_second = base_steps_per_second + pid_output;  // Correctie voor linkermotor
+    float motor2_steps_per_second = base_steps_per_second - pid_output;  // Correctie voor rechtermotor
 
     // Zorg ervoor dat de stappen per seconde niet negatief zijn
     motor1_steps_per_second = constrain(motor1_steps_per_second, base_steps_per_second - 600, base_steps_per_second + 1000);
