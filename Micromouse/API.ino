@@ -1,7 +1,9 @@
 // ----- API -----
+uint32_t dilee = 90;
 
 void log(String message) {
-    Serial.print("log " + message + "\n");
+    //espClient.print("log " + message + "\n");
+    //delay(dilee);
 }
 
 int mazeWidth() {
@@ -43,7 +45,7 @@ void setWall(int x, int y, char direction) {
         + String(y) + " "
         + String(direction) + "\n"
     );
-    delay(50);
+    delay(dilee);
 }
 
 void clearWall(int x, int y, char direction) {
@@ -83,7 +85,7 @@ void setText(int x, int y, String text) {
         + String(y) + " "
         + text + "\n"
     );
-    delay(50);
+    delay(dilee);
 }
 
 void clearText(int x, int y) {

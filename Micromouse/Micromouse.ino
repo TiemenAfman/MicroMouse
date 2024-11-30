@@ -398,12 +398,10 @@ if (testButton){
     debugInfo += "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
     debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
     
-    if (false && !isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
+    if (!isGoal(micromouse.current_position[0], micromouse.current_position[1])) {
       //log("Running...");
       updateMaze2(micromouse.current_position[0],micromouse.current_position[1]);
       get_next_move();
-      debugInfo += "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
-      debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
     }
     // else{
     //       ; //log("finish!");
