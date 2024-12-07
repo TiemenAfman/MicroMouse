@@ -34,6 +34,8 @@ bool testButton = false;
 bool enblState = false;
 bool debugMode = true;
 
+uint32_t SocketDelay = 90;
+
 class FIFOBuffer {
   private:
     int capacity;
@@ -394,6 +396,7 @@ void loop() {
 
     // Als de client verbonden is
     if (espClient && espClient.connected()) {
+      SocketDelay = 90;
       // Verzenden van een bericht naar de client als er iets in `message` staat
       if (message != "") {
         espClient.println(message);
@@ -418,6 +421,9 @@ void loop() {
           }
         }
       }  
+    }
+    else {
+      SocketDelay = 0;
     }
   
   // Handle OTA events
@@ -459,15 +465,8 @@ if (testButton){
       micromouse.current_position[0] = 0;
       micromouse.current_position[1] = 0;
       micromouse.current_direction = "N";
-      // ackReset();
 
-      // if (wasReset()){
-      //   //reset and start again
-      //   micromouse.current_position[0] = 0;
-      //   micromouse.current_position[1] = 0;
-      //   micromouse.current_direction = "N";
-      //   ackReset();
-      // }
+      testButton = false;
     }
 
 

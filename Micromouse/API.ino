@@ -1,9 +1,9 @@
 // ----- API -----
-uint32_t dilee = 90;
+
 
 void log(String message) {
     espClient.print("log " + message + "\n");
-    delay(dilee);
+    delay(SocketDelay);
 }
 
 int mazeWidth() {
@@ -45,7 +45,7 @@ void setWall(int x, int y, char direction) {
         + String(y) + " "
         + String(direction) + "\n"
     );
-    delay(dilee);
+    delay(SocketDelay);
 }
 
 void clearWall(int x, int y, char direction) {
@@ -64,7 +64,7 @@ void setColor(int x, int y, char color) {
         + String(y) + " "
         + String(color) + "\n"
     );
-    delay(dilee);
+    delay(SocketDelay);
 }
 
 void clearColor(int x, int y) {
@@ -86,7 +86,7 @@ void setText(int x, int y, String text) {
         + String(y) + " "
         + text + "\n"
     );
-    delay(dilee);
+    delay(SocketDelay);
 }
 
 void clearText(int x, int y) {
@@ -113,7 +113,7 @@ void resetAll(){
     espClient.print(
         "resetAll\n"
     );
-    delay(dilee); 
+    delay(SocketDelay); 
 }
 
 // ----- Helpers -----
