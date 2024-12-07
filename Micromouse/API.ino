@@ -2,8 +2,8 @@
 uint32_t dilee = 90;
 
 void log(String message) {
-    //espClient.print("log " + message + "\n");
-    //delay(dilee);
+    espClient.print("log " + message + "\n");
+    delay(dilee);
 }
 
 int mazeWidth() {
@@ -58,12 +58,13 @@ void clearWall(int x, int y, char direction) {
 }
 
 void setColor(int x, int y, char color) {
-    Serial.print(
+    espClient.print(
         "setColor "
         + String(x) + " "
         + String(y) + " "
         + String(color) + "\n"
     );
+    delay(dilee);
 }
 
 void clearColor(int x, int y) {
@@ -106,6 +107,13 @@ bool wasReset() {
 
 void ackReset() {
     getAck("ackReset");
+}
+
+void resetAll(){
+    espClient.print(
+        "resetAll\n"
+    );
+    delay(dilee); 
 }
 
 // ----- Helpers -----

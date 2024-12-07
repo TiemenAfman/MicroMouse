@@ -43,6 +43,7 @@ float FilteredLeft;
 float FilteredRight;
 
 String moveForward(float distance_cm) {
+
   String info = "";
   
   // Bereken het aantal stappen dat nodig is om de gewenste afstand te overbruggen
@@ -99,7 +100,7 @@ String moveForward(float distance_cm) {
   }
 
   info = "Done";
-
+  
   return info;
 }
 

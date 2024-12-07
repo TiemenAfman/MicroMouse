@@ -13,11 +13,12 @@ bool wallFront() {
   float distance = 12.08 * pow(voltage, -1.058); // Voorbeeldformule, deze kan afwijken
   
   // Bepaal de drempelwaarde voor muurdetectie (bijv. 30 cm)
-  float thresholdDistance = 12.0; // Pas dit aan afhankelijk van je vereisten
+  float thresholdDistance = 20.0; // Pas dit aan afhankelijk van je vereisten
   
   // Retourneer true als de afstand kleiner is dan de drempelwaarde, anders false
-  return (distance < thresholdDistance);
+  return (distance > thresholdDistance);
 }
+
 
 bool wallLeft() {
   int sensorValue = analogRead(sensorPinL);  // Lees de waarde van de sensor

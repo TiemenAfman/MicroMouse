@@ -32,6 +32,7 @@ int gridData[5][5][2]; // raster met 2 getallen per cel
 // 
 bool testButton = false;
 bool enblState = false;
+bool debugMode = true;
 
 class FIFOBuffer {
   private:
@@ -253,6 +254,7 @@ void setup() {
 
   // Voeg de toggle-handlers toe
   server.on("/toggle", handleToggle);
+  server.on("/debug", handleDebugToggle);
   server.on("/enblToggle", handleEnblToggle); 
 
   //start de webserver
@@ -283,6 +285,18 @@ void handleRoot() {
   html += "function toggle() {";
   html += "var xhr = new XMLHttpRequest();";
   html += "xhr.open('GET', '/toggle', true);";
+  html += "xhr.send();";
+  html += "}";
+  html += "</script>";
+
+  // Voeg een toggle button toe
+  html += "<button id='debugButton' onclick='debug()'>debug</button>";
+
+  // Voeg een JavaScript-functie toe om de knop te laten werken
+  html += "<script>";
+  html += "function debug() {";
+  html += "var xhr = new XMLHttpRequest();";
+  html += "xhr.open('GET', '/debug', true);";
   html += "xhr.send();";
   html += "}";
   html += "</script>";
@@ -339,6 +353,18 @@ void handleToggle() {
   server.send(200, "text/plain", response);
 }
 
+void handleDebugToggle() {
+  // Toggelen van de boolean
+  debugMode = !debugMode;
+
+  // Stuur feedback naar de webpagina
+  String response = debugMode ? "Debug is AAN" : "Debug is UIT";
+
+  server.send(200, "text/plain", response);
+
+  espClient.println(debugMode ? "Debug is AAN" : "Debug is UIT");
+}
+
 void handleEnblToggle() {
   // Toggle de enable status
   enblState = !enblState;
@@ -359,27 +385,39 @@ void handleEnblToggle() {
 void loop() {
     // Controleren op nieuwe clients
     if (!espClient || !espClient.connected()) {
-        espClient = socketServer.available(); // Accepteer nieuwe verbindingen
-        if (espClient) {
-            Serial.println("Nieuwe client verbonden!");
-        }
+      espClient = socketServer.available(); // Accepteer nieuwe verbindingen
+      if (espClient) {
+        Serial.println("Nieuwe client verbonden!");
+        resetAll();
+      }
     }
 
     // Als de client verbonden is
     if (espClient && espClient.connected()) {
-        // Verzenden van een bericht naar de client als er iets in `message` staat
-        if (message != "") {
-            espClient.println(message);
-            Serial.println("Bericht verzonden: " + message);
-            message = ""; // Reset message na verzending
-        }
+      // Verzenden van een bericht naar de client als er iets in `message` staat
+      if (message != "") {
+        espClient.println(message);
+        Serial.println("Bericht verzonden: " + message);
+        message = ""; // Reset message na verzending
+      }
 
-        // Ontvangen van data van de client
-        if (espClient.available()) {
-            String received = espClient.readStringUntil('\n');
-            Serial.println("Ontvangen van client: " + received);
-            espClient.println("Echo: " + received); // Echo het bericht terug
+      // Ontvangen van data van de client
+      if (espClient.available()) {
+        char c = espClient.read();
+        message += c;
+
+        debugInfo += message;
+
+        if (message.startsWith("ena")){
+          debugInfo += message;
+          
+          if (message == "enable") {
+            digitalWrite(ENBL_PIN, HIGH);
+            debugInfo += " ENBL_PIN is nu HOOG. ";
+            message = "";
+          }
         }
+      }  
     }
   
   // Handle OTA events
@@ -389,7 +427,7 @@ void loop() {
   server.handleClient();
 
 if (testButton){
-  testButton = false;
+  testButton = !debugMode;
   //debugInfo += "Info: " + moveForward(600) + "\n";
   //turn(left);
   //moveForward(550);
@@ -403,41 +441,34 @@ if (testButton){
       updateMaze2(micromouse.current_position[0],micromouse.current_position[1]);
       get_next_move();
     }
-    // else{
-    //       ; //log("finish!");
+    else{
+      log("finish!");
       
-    //   // // Show the flood values and walls in the maze
-    //   // for (int i = 0; i < micromouse.maze_size; i++) {
-    //   //     for (int j = 0; j < micromouse.maze_size; j++) {
-    //   //         setText(i, j, String(micromouse.maze[i][j]));
-    //   //         if (micromouse.walls[i][j] & micromouse.NORTH) setWall(i, j, 'n');
-    //   //         if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
-    //   //         if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
-    //   //         if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
-    //   //     }
-    //   // }
+      // Show the flood values and walls in the maze
+      for (int i = 0; i < micromouse.maze_size; i++) {
+          for (int j = 0; j < micromouse.maze_size; j++) {
+              setText(i, j, String(micromouse.maze[i][j]));
+              if (micromouse.walls[i][j] & micromouse.NORTH) setWall(i, j, 'n');
+              if (micromouse.walls[i][j] & micromouse.EAST) setWall(i, j, 'e');
+              if (micromouse.walls[i][j] & micromouse.SOUTH) setWall(i, j, 's');
+              if (micromouse.walls[i][j] & micromouse.WEST) setWall(i, j, 'w');
+          }
+      }
 
-    //   // //reset and start again
-    //   // micromouse.current_position[0] = 0;
-    //   // micromouse.current_position[1] = 0;
-    //   // micromouse.current_direction = "N";
-    //   // ackReset();
+      //reset and start again
+      micromouse.current_position[0] = 0;
+      micromouse.current_position[1] = 0;
+      micromouse.current_direction = "N";
+      // ackReset();
 
-    //   // if (wasReset()){
-    //   //   //reset and start again
-    //   //   micromouse.current_position[0] = 0;
-    //   //   micromouse.current_position[1] = 0;
-    //   //   micromouse.current_direction = "N";
-    //   //   ackReset();
-    //   // }
-
-    //   // Wacht even
-    //   // for (int i = 0; i < 1; i++) {
-    //   //   delay(1);
-    //   //   ArduinoOTA.handle();
-    //   // }  
-    // }
-}
+      // if (wasReset()){
+      //   //reset and start again
+      //   micromouse.current_position[0] = 0;
+      //   micromouse.current_position[1] = 0;
+      //   micromouse.current_direction = "N";
+      //   ackReset();
+      // }
+    }
 
 
 //debugInfo = "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
@@ -446,7 +477,7 @@ if (testButton){
 
   
 
-  
+  }
 //publishValue(mqttClient, "MicroMouse/Log", message);
 }
 
@@ -456,17 +487,18 @@ bool isGoal(int x, int y) {
 }
 
 void updateMaze2(int x, int y) {
-    log("Position: " + String(x) + ", " + String(y));
+    //log("Position: " + String(x) + ", " + String(y));
 
     // Set buffer for queue
     FIFOBuffer fifo(50);
 
     micromouse.visited[x][y] = true;
-    setColor(x,y, 'w');
+    setColor(x,y, 'b');
      // setColor(x, y, 'w');
     
     // Check walls and update the maze
     if (wallFront()) {
+        log("Wall front Detected");
         if (micromouse.current_direction == "N" && y < micromouse.maze_size - 1) {
             micromouse.walls[x][y] |= micromouse.NORTH;
             micromouse.walls[x][y + 1] |= micromouse.SOUTH;
@@ -593,11 +625,12 @@ void get_next_move() {
     int move_count = 0;
 
     if (!wallFront()) {
+        log("Wall front Undetected");
         int nx = x + (micromouse.current_direction == "E") - (micromouse.current_direction == "W");
         int ny = y + (micromouse.current_direction == "N") - (micromouse.current_direction == "S");
         add_move(possible_moves, move_count, nx, ny);
         debugInfo += "no wall front: add move";
-        log("nx: " + String(nx) + " ny: " + String(ny));
+        //log("nx: " + String(nx) + " ny: " + String(ny));
     }
 
     if (!wallRight()) {
@@ -651,7 +684,7 @@ void get_next_move() {
       ny = next_move[1];
       if (nx == x + 1 && ny == y) {
           // Move East
-          log("next move: east");
+          //log("next move: east");
           while (micromouse.current_direction != "E") {
               if (micromouse.current_direction == "N") {
                   turn_right();
@@ -663,7 +696,7 @@ void get_next_move() {
           }
       } else if (nx == x - 1 && ny == y) {
           // Move West
-          log("next move: west");
+          //log("next move: west");
           while (micromouse.current_direction != "W") {
               if (micromouse.current_direction == "S") {
                   turn_right();
@@ -675,7 +708,7 @@ void get_next_move() {
           }
       } else if (nx == x && ny == y + 1) {
           // Move North
-          log("next move: north");
+          //log("next move: north");
           while (micromouse.current_direction != "N") {
               if (micromouse.current_direction == "W") {
                   turn_right();
@@ -687,8 +720,8 @@ void get_next_move() {
           }
       } else if (nx == x && ny == y - 1) {
           // Move South
-          log("next move: south");
-          log("nx: " + String(nx) + " ny: " + String(ny) + "x: " + String(x) + " y: " + String(y));
+          //log("next move: south");
+          //log("nx: " + String(nx) + " ny: " + String(ny) + "x: " + String(x) + " y: " + String(y));
           while (micromouse.current_direction != "S") {
               if (micromouse.current_direction == "W") {
                   turn_left();
@@ -700,7 +733,7 @@ void get_next_move() {
           }
       }
       move_forward();
-      log("move_forward");
+      //log("move_forward");
     }
 }
 
@@ -709,22 +742,22 @@ void move_forward(){
   if (micromouse.current_direction == "N"){
     micromouse.current_position[0] = micromouse.current_position[0];
     micromouse.current_position[1] = micromouse.current_position[1] + 1;
-    log("move north");
+    //log("move north");
   }
   else if (micromouse.current_direction == "E"){
     micromouse.current_position[0] = micromouse.current_position[0] + 1;
     micromouse.current_position[1] = micromouse.current_position[1];
-    log("move east");
+    //log("move east");
   }
   else if (micromouse.current_direction == "S"){
     micromouse.current_position[0] = micromouse.current_position[0];
     micromouse.current_position[1] = micromouse.current_position[1] - 1;
-    log("move south");
+    //log("move south");
   }
   else if (micromouse.current_direction == "W"){
     micromouse.current_position[0] = micromouse.current_position[0] - 1;
     micromouse.current_position[1] = micromouse.current_position[1];
-    log("move west");
+    //log("move west");
   }
 }
 
@@ -732,38 +765,38 @@ void turn_left(){
   turn(left);
   if (micromouse.current_direction == "N"){
     micromouse.current_direction = "W";
-    log("left new direction: west");
+    //log("left new direction: west");
   }
   else if (micromouse.current_direction == "E"){
     micromouse.current_direction = "N";
-    log("left new direction: north");
+    //log("left new direction: north");
   }
   else if (micromouse.current_direction == "S"){
     micromouse.current_direction = "E";
-    log("left new direction: east");
+    //log("left new direction: east");
   }
   else if (micromouse.current_direction == "W"){
     micromouse.current_direction = "S";
-    log("left new direction: south");
+    //log("left new direction: south");
   }
 }
 void turn_right(){
   turn(right);
   if (micromouse.current_direction == "N"){
     micromouse.current_direction = "E";
-    log("right new direction: east");
+    //log("right new direction: east");
   }
   else if (micromouse.current_direction == "E"){
     micromouse.current_direction = "S";
-    log("right new direction: south");
+    //log("right new direction: south");
   }
   else if (micromouse.current_direction == "S"){
     micromouse.current_direction = "W";
-    log("right new direction: west");
+    //log("right new direction: west");
   }
   else if (micromouse.current_direction == "W"){
     micromouse.current_direction = "N";
-    log("right new direction: north");
+    //log("right new direction: north");
   }
   
 }
