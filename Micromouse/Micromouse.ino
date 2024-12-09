@@ -737,7 +737,7 @@ void get_next_move() {
 }
 
 void move_forward(){
-  moveForward(183);
+  moveForward(188);
   if (micromouse.current_direction == "N"){
     micromouse.current_position[0] = micromouse.current_position[0];
     micromouse.current_position[1] = micromouse.current_position[1] + 1;

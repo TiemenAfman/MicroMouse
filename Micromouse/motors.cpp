@@ -45,7 +45,12 @@ float FilteredRight;
 String moveForward(float distance_cm) {
 
   String info = "";
-  
+  float sensor_left = 0;
+  float sensor_right = 0;
+
+  bool previousWallLeft = false;  // Vorige status van wallLeft
+  bool previousWallRight = false; // Vorige status van wallRight
+
   // Bereken het aantal stappen dat nodig is om de gewenste afstand te overbruggen
   int steps_needed = (distance_cm / wheel_circumference) * steps_per_revolution;
   
@@ -60,26 +65,28 @@ String moveForward(float distance_cm) {
   while (stepperL.distanceToGo() != 0 && stepperR.distanceToGo() != 0) {
 
     // Lees de sensoren in elke cyclus om de PID-aanpassing te updaten
-    float sensor_left = wallDistance(sensorPinL);
-    float sensor_right = wallDistance(sensorPinR);
-
-    // if (wallLeft() && !wallRight()){        // wel muur links maar rechts niet
-    //   sensor_right = 89;                      // zet rechter sensor op vaste waarde
-    // } else if(!wallLeft() && wallRight()){  // wel muur rechts maar links niet
-    //   sensor_left = 89;                       // zet linker sensor op vaste waarde
-    // }
-    // if (wallLeft() || wallRight()){         // als muur links of rechts bereken dan pid
-    //   // PID-berekeningen herberekenen tijdens elke iteratie
-    //   calculatePID(sensor_left, sensor_right);      
-    // } else{                                   // geen muren dan rechtdoor rijden
-    //   pid_output = 0;
-    // }
-
-    if (wallLeft() && wallRight()){
-    calculatePID(sensor_left, sensor_right); 
+    if (wallLeft()) {
+      sensor_left = wallDistance(sensorPinL);
     }
-    else {
-    pid_output = 0;
+    if (wallRight()) {
+      sensor_right = wallDistance(sensorPinR);
+    }
+
+    // Detecteer de neegaande flank van wallLeft
+    if (previousWallLeft && !wallLeft()) {
+      sensor_left = sensor_right;  // Stel sensor_left in op de waarde van sensor_right
+    }
+
+    // Detecteer de neegaande flank van wallRight
+    if (previousWallRight && !wallRight()) {
+      sensor_right = sensor_left;  // Stel sensor_right in op de waarde van sensor_left
+    }
+
+    // PID-aanpassing
+    if (wallLeft() || wallRight()) {
+      calculatePID(sensor_left, sensor_right); 
+    } else {
+      pid_output = 0;
     }
     
     // Bereken het aantal stappen per seconde voor beide motoren
@@ -97,12 +104,17 @@ String moveForward(float distance_cm) {
     // Laat de motoren stappen
     stepperL.run();  // Motor bewegen
     stepperR.run();  // Motor bewegen
+
+    // Update de vorige status van wallLeft en wallRight
+    previousWallLeft = wallLeft();
+    previousWallRight = wallRight();
   }
 
   info = "Done";
   
   return info;
 }
+
 
 void calculatePID(float sensor_left, float sensor_right) {
   error = sensor_left - sensor_right;
