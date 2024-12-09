@@ -434,11 +434,7 @@ void loop() {
 
 if (testButton){
   testButton = !debugMode;
-  //debugInfo += "Info: " + moveForward(600) + "\n";
-  //turn(left);
-  //moveForward(550);
-  //message = "test";
-  //setWall(0, 0, 'n');
+
     debugInfo += "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
     debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
     
@@ -468,16 +464,7 @@ if (testButton){
 
       testButton = false;
     }
-
-
-//debugInfo = "Sensor Value F: " + String(wallDistance(sensorPinF), 2) + " Sensor Value L: " + String(wallDistance(sensorPinL), 2) + " Sensor Value R: " + String(wallDistance(sensorPinR), 2) + "\n";
-//debugInfo += "Sensor Wall F: " + String(wallFront()) + " Sensor Wall L: " + String(wallLeft()) + " Sensor Wall R: " + String(wallRight()) + "\n";
-  //delay(1000);
-
-  
-
   }
-//publishValue(mqttClient, "MicroMouse/Log", message);
 }
 
 // Check if the goal is reached
